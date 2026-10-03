@@ -1,6 +1,6 @@
 # Living Knowledge architecture: current state
 
-**Evidence base:** `codex/architecture-atlas`, based on `075e82c` (open PR #1), 2026-10-03. This repository contains proposed contracts and lineage design, **no application implementation**. [Component map](component-map.md) lists the next decision gate and planned nodes.
+**Evidence base:** merged [contract PR #1](https://github.com/brock-run/living-knowledge/pull/1) and [architecture PR #2](https://github.com/brock-run/living-knowledge/pull/2), 2026-10-03. This repository contains proposed contracts and lineage design, **no application implementation**. [Component map](component-map.md) lists the next decision gate and planned nodes.
 
 ```mermaid
 flowchart LR

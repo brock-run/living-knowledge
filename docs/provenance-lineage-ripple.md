@@ -18,7 +18,7 @@ review.
 The terms answer different questions: “Where did this assertion come from?”,
 “What depends on it?”, and “What action is warranted after it changes?” The
 [canon contract design](canon-semantics-and-contracts.md) keeps them aligned
-with Rosetta and CanonFlow while Living retains steward approval, effective
+with PKM Canon and CanonFlow while Living retains steward approval, effective
 time, and access policy.
 
 ## Living Knowledge application

@@ -3,7 +3,7 @@
 **Status:** Proposed architecture (the repository has no application code yet).
 **Source:** *Living Domain Knowledge System - Initial Brainstorming*; this
 document narrows its ontology, assertion, publication, and OpenLineage ideas
-into contracts that can interoperate with Rosetta and CanonFlow.
+into contracts that can interoperate with PKM Canon and CanonFlow.
 
 ## Canon and admission
 
@@ -16,7 +16,7 @@ it is not a guarantee of timeless or universal truth.
 
 Keep the brief's three layers distinct:
 
-1. **Source layer:** Rosetta packages or other identified source versions;
+1. **Source layer:** PKM Canon packages or other identified source versions;
    faithful capture is source-canonical, not domain-approved.
 2. **Candidate layer:** extracted concepts/assertions, competing evidence,
    confidence, conflicts, and review tasks; candidates cannot be served as
@@ -32,7 +32,7 @@ extraction, or model output must not silently promote a candidate.
 ## Product binding of portable contracts
 
 Living can implement `CanonStore[Ref, Commit, Artifact]` without inheriting
-Rosetta's `CanonicalPackage` return type. A possible binding is:
+PKM Canon's `CanonicalPackage` return type. A possible binding is:
 
 ```python
 CanonStore[KnowledgeVersionRef, ApprovedAssertionCommit, ApprovedAssertionVersion]
@@ -92,7 +92,7 @@ links. Emit OpenLineage from durable events or an outbox so a missing lineage
 backend does not silently erase audit evidence. Use its run/dataset links to
 explain pipeline provenance, while the internal ledger powers precise ripple.
 
-Example: a Rosetta source node changes; its prior version is linked to three
+Example: a PKM Canon source node changes; its prior version is linked to three
 Living assertions. Reverse traversal identifies those assertions, their
 knowledge objects, documentation releases, and pinned context bundles. A
 steward sees which evidence was actually used and decides whether the claims
@@ -110,7 +110,7 @@ remain valid. No output is automatically rewritten.
 5. Add reverse-impact queries and OpenLineage run/dataset emission from the
    same durable events.
 
-The portable vocabulary and store shape are further specified in Rosetta's
+The portable vocabulary and store shape are further specified in PKM Canon's
 `docs/specs/canon-contracts-v0.1.md`. The two products should share contract
 tests once both have working adapters, while keeping separate storage and
 admission implementations.

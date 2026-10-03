@@ -50,7 +50,7 @@ physical table shape into the shared interface.
 | `CanonDescriptor` | Domain, owner/steward, authority policy version, audience, scope |
 | `VersionRef` | Assertion/definition/knowledge-object version plus source refs |
 | `Snapshot` | Immutable approved selection; record Iceberg snapshot IDs and policy version |
-| `PublicationPin` | Documentation or context-bundle ID, canon snapshot, exact claims/evidence, retrieval results/config, generation and review versions |
+| `PublicationPin` | Documentation or context-bundle ID, immutable `AuthorityContext` (including audience and use purpose), canon snapshot, exact claims/evidence, retrieval results/config, generation and review versions |
 | `DependencyEdge` | Source element supports assertion; assertion supports object; object/context bundle supports publication/answer |
 | `AuthorityContext` | Principal, audience, domain, use purpose, effective time, classification |
 
@@ -60,7 +60,8 @@ Iceberg snapshot IDs preserve physical reproducibility; the canon snapshot
 manifest preserves semantic selection and approval. Each publication pins both
 where applicable. A documentation release points to the exact versions it
 used, not merely the latest table or search index. A pin preserves audit
-history; it does not authorize old content for a new reader.
+history and the audience for which the answer was produced; it does not
+authorize old content for a new reader.
 
 ## Retrieval contract
 

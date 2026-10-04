@@ -9,3 +9,9 @@ The repo-owned [current architecture](docs/architecture/current-state.md),
 [component map](docs/architecture/component-map.md) distinguish the design
 state from future components and their next work. Run
 `node scripts/check-architecture.mjs` to check diagram IDs and local links.
+
+## Review guidance
+
+[Repo reviewer guidance](docs/reviewing.md) references the shared
+[Canonworks reviewer standards draft](docs/canonworks/reviewer-standards.md) and records local applicability
+and supported checks. CanonFlow owns the master; local Git files provide offline access.

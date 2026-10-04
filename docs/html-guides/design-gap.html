@@ -1,200 +1,2029 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>What in Living Knowledge is only designed?</title>
-  <style>
-    :root {
-      --ink: #1f2933;
-      --muted: #52606d;
-      --line: #cbd2d9;
-      --surface: #ffffff;
-      --paper: #f5f7fa;
-      --implemented: #0f766e;
-      --proposed: #b45309;
-      --selected: #2563eb;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font: 15px/1.5 system-ui, sans-serif;
-      color: var(--ink);
-      background: var(--paper);
-    }
-    header[data-shell="header"] {
-      background: var(--surface);
-      border-bottom: 1px solid var(--line);
-      padding: 1.25rem 1.5rem;
-    }
-    header .repo-label {
-      margin: 0 0 0.35rem;
-      font-size: 0.75rem;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-    header h1 {
-      margin: 0 0 0.75rem;
-      font-size: 1.35rem;
-      font-weight: 650;
-    }
-    header .banner a {
-      color: var(--selected);
-    }
-    [data-shell="legend"] {
-      display: flex;
-      gap: 1rem;
-      padding: 0.75rem 1.5rem;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
-    .is-implemented,
-    .is-proposed {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.2rem 0.55rem;
-      border: 2px solid transparent;
-      border-radius: 4px;
-      background: var(--surface);
-    }
-    .is-implemented { border-color: var(--implemented); }
-    .is-proposed { border-color: var(--proposed); }
-    [data-shell="stage"] {
-      padding: 1rem 1.5rem 2rem;
-    }
-    [hidden] { display: none !important; }
-    .map-layout,
-    .steps-layout {
-      display: grid;
-      gap: 1rem;
-      max-width: 52rem;
-    }
-    .map-layout {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
-    }
-    .map-node,
-    .step-button {
-      text-align: left;
-      padding: 0.65rem 0.85rem;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      background: var(--surface);
-      cursor: pointer;
-    }
-    .map-node[aria-pressed="true"],
-    .step-button[aria-pressed="true"] {
-      outline: 2px solid var(--selected);
-      outline-offset: 2px;
-      border-color: var(--selected);
-    }
-    .inspector,
-    .selected-step {
-      padding: 0.85rem 1rem;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      background: var(--surface);
-    }
-    .inspector[hidden],
-    .selected-step[hidden] {
-      display: none !important;
-    }
-    .essay-section {
-      max-width: 40rem;
-      padding: 0.85rem 1rem;
-      border-left: 3px solid var(--line);
-      background: var(--surface);
-    }
-    [data-shell="closing"] {
-      margin: 0;
-      padding: 1rem 1.5rem 1.5rem;
-      font-size: 0.85rem;
-      color: var(--muted);
-      border-top: 1px solid var(--line);
-    }
-    a[data-citation="repo"] {
-      font-family: ui-monospace, monospace;
-      font-size: 0.85em;
-    }
-    .essay-stack { display: grid; gap: 1rem; }
-    .lk-list { list-style: none; margin: 0.5rem 0 0; padding: 0; display: grid; gap: 0.5rem; max-width: 40rem; }
-    .lk-list li { display: block; width: 100%; }
-    .lk-list .is-proposed { display: flex; flex-wrap: wrap; align-items: baseline; width: 100%; padding: 0.4rem 0.7rem; }
-    .lk-id { font-family: ui-monospace, monospace; font-weight: 650; }
-  </style>
-</head>
-<body>
-  <header data-shell="header">
-    <p class="repo-label">Living Knowledge</p>
-    <h1>What in Living Knowledge is only designed?</h1>
-    <p class="banner">
-      <a href="../architecture/component-map.md">Authoritative component map</a>
-    </p>
-  </header>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design Gap - Living Knowledge</title>
+<meta name="guides:repo-dirs" content="canon-flow=canon-flow;pkm-canon=pkm-rosetta;living-knowledge=living-knowledge;brocks-helpers=brocks-helpers">
+<!-- guides:runtime begin v2.x -->
+<style>
+/* brocks-helpers/assets/html-guides/tokens.css */
+:root {
+  /* Surface */
+  --paper: #f7f8fa;
+  --surface: #ffffff;
+  --ink: #12161c;
+  --ink-soft: #47525f;
+  --rule: #dde2e8;
+  --schematic: #141a21;
+  --schematic-rule: #2b3540;
 
-  <section data-shell="legend" aria-label="Implementation legend">
-    <span class="is-implemented">Implemented</span>
-    <span class="is-proposed">Proposed</span>
-  </section>
+  /* Typography */
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  --serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --measure: 68ch;
 
-  <section data-shell="stage" aria-label="Page body">
-    <div data-stage="essay" class="essay-stack">
-      <section class="essay-section">
-        <h2>Thesis</h2>
-        <p>Living Knowledge currently contains proposed contracts and lineage design, and no application implementation. Every component, LK00 through LK10, is Proposed. No Living Knowledge application runs, so none is Implemented.</p>
-        <p>The pilot boundary and accountable owners are still being decided in BRO-5. Target nodes cannot be scoped into implementation tickets until that decision lands. See the <a data-citation="repo" data-path="README.md" data-line="1">README</a> and the <a data-citation="repo" data-path="docs/architecture/component-map.md" data-line="1">component map</a>.</p>
-      </section>
+  /* Implementation State */
+  --st-implemented: #2ea043;
+  --st-partial: #d29922;
+  --st-proposed: #a855f7;
+  --st-absent: #f85149;
 
-      <section class="essay-section">
-        <h2>Components, all Proposed</h2>
-        <p>Each item below is a design-only component, with the design source it comes from.</p>
-        <ul class="lk-list">
-        <li class="is-proposed"><span class="lk-id">LK00</span> <span>Named domain canon, portable contracts, and provenance: design only.</span> <a data-citation="repo" data-path="docs/canon-semantics-and-contracts.md" data-line="1">docs/canon-semantics-and-contracts.md</a></li>
-        <li class="is-proposed"><span class="lk-id">LK01</span> <span>Pilot boundary and accountable owner: decision pending in BRO-5.</span> <a data-citation="repo" data-path="docs/architecture/component-map.md" data-line="8">Component map</a></li>
-        <li class="is-proposed"><span class="lk-id">LK02</span> <span>Identified source evidence and preservation.</span> <a data-citation="repo" data-path="docs/canon-semantics-and-contracts.md" data-line="8">Canon and admission</a></li>
-        <li class="is-proposed"><span class="lk-id">LK03</span> <span>Candidate claims, competing evidence, and conflicts.</span> <a data-citation="repo" data-path="docs/canon-semantics-and-contracts.md" data-line="8">Canon and admission</a></li>
-        <li class="is-proposed"><span class="lk-id">LK04</span> <span>Steward decisions, supersession, and effective time.</span> <a data-citation="repo" data-path="docs/canon-semantics-and-contracts.md" data-line="8">Canon and admission</a></li>
-        <li class="is-proposed"><span class="lk-id">LK05</span> <span>Immutable approved-selection snapshot.</span> <a data-citation="repo" data-path="docs/canon-semantics-and-contracts.md" data-line="32">Product binding</a></li>
-        <li class="is-proposed"><span class="lk-id">LK06</span> <span>Authority and access gates before retrieval ranking.</span> <a data-citation="repo" data-path="docs/canon-semantics-and-contracts.md" data-line="66">Retrieval contract</a></li>
-        <li class="is-proposed"><span class="lk-id">LK07</span> <span>Answer, context, and document publication with an exact pin.</span> <a data-citation="repo" data-path="docs/canon-semantics-and-contracts.md" data-line="32">Product binding</a></li>
-        <li class="is-proposed"><span class="lk-id">LK08</span> <span>Internal typed version-level dependency ledger.</span> <a data-citation="repo" data-path="docs/provenance-lineage-ripple.md" data-line="24">Living Knowledge application</a></li>
-        <li class="is-proposed"><span class="lk-id">LK09</span> <span>Rebuildable indexes and OpenLineage/PROV-O views.</span> <a data-citation="repo" data-path="docs/provenance-lineage-ripple.md" data-line="52">OpenLineage and PROV-O</a></li>
-        <li class="is-proposed"><span class="lk-id">LK10</span> <span>Explained ripple review with no automatic rewrite.</span> <a data-citation="repo" data-path="docs/provenance-lineage-ripple.md" data-line="68">Contract checks to add</a></li>
-        </ul>
-      </section>
+  /* Decision Lifecycle */
+  --lc-proposed: #9a6700;
+  --lc-accepted: #197b38;
+  --lc-superseded: #677180;
 
-      <section class="essay-section">
-        <h2>Where decisions live</h2>
-        <p>Portfolio and Living decision status is kept in the <a data-citation="notion" href="https://app.notion.com/p/3ee899c28af381858188fbb5b4954156">ADR ledger</a>. The local documents stay the detailed design sources.</p>
-      </section>
-    </div>
-  </section>
+  /* Products */
+  --prod-cf: #16697a;
+  --prod-pkm: #a5651f;
+  --prod-lk: #5f5088;
 
-  <p data-shell="closing">
-    Sources not checked: the code graph, because this repository has no application code. Other repositories were not checked either.
-  </p>
+  /* Roles */
+  --role-entry: #455a64;
+  --role-service: #1e88e5;
+  --role-adapter: #00897b;
+  --role-store: #5e35b1;
+  --role-model: #8e24aa;
+  --role-resolver: #f4511e;
 
-  <script>
-    (function () {
-      function wireRepoCitations() {
-        document.querySelectorAll('a[data-citation="repo"]').forEach(function (anchor) {
-          var path = anchor.getAttribute("data-path");
-          if (!path || anchor.getAttribute("href")) {
-            return;
+  /* Callouts */
+  --note: #a5651f;
+  --flag: #a03b3b;
+  --info: #16697a;
+  --design-bet: #5f5088;
+  --verdict: #a855f7;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0e1216;
+    --surface: #151b21;
+    --ink: #e6ebf0;
+    --ink-soft: #9aa7b4;
+    --rule: #262f39;
+    
+    --lc-proposed: #d29922;
+    --lc-accepted: #3fb950;
+    --lc-superseded: #8b949e;
+
+    --prod-cf: #4fb3c4;
+    --prod-pkm: #d99a4e;
+    --prod-lk: #9d8fc4;
+    
+    --role-entry: #cfd8dc;
+    --role-service: #90caf9;
+    --role-adapter: #80cbc4;
+    --role-store: #b39ddb;
+    --role-model: #ce93d8;
+    --role-resolver: #ffab91;
+    
+    --note: #d99a4e;
+    --flag: #e07a7a;
+    --info: #4fb3c4;
+    --design-bet: #9d8fc4;
+    --verdict: #d8b4fe;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #0e1216;
+  --surface: #151b21;
+  --ink: #e6ebf0;
+  --ink-soft: #9aa7b4;
+  --rule: #262f39;
+  
+  --lc-proposed: #d29922;
+  --lc-accepted: #3fb950;
+  --lc-superseded: #8b949e;
+
+  --prod-cf: #4fb3c4;
+  --prod-pkm: #d99a4e;
+  --prod-lk: #9d8fc4;
+
+  --role-entry: #cfd8dc;
+  --role-service: #90caf9;
+  --role-adapter: #80cbc4;
+  --role-store: #b39ddb;
+  --role-model: #ce93d8;
+  --role-resolver: #ffab91;
+  
+  --note: #d99a4e;
+  --flag: #e07a7a;
+  --info: #4fb3c4;
+  --design-bet: #9d8fc4;
+  --verdict: #d8b4fe;
+}
+
+:root[data-theme="light"] {
+  --paper: #f7f8fa;
+  --surface: #ffffff;
+  --ink: #12161c;
+  --ink-soft: #47525f;
+  --rule: #dde2e8;
+  
+  --lc-proposed: #9a6700;
+  --lc-accepted: #197b38;
+  --lc-superseded: #677180;
+  
+  --prod-cf: #16697a;
+  --prod-pkm: #a5651f;
+  --prod-lk: #5f5088;
+
+  --role-entry: #455a64;
+  --role-service: #1e88e5;
+  --role-adapter: #00897b;
+  --role-store: #5e35b1;
+  --role-model: #8e24aa;
+  --role-resolver: #f4511e;
+  
+  --note: #a5651f;
+  --flag: #a03b3b;
+  --info: #16697a;
+  --design-bet: #5f5088;
+  --verdict: #a855f7;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  line-height: 1.65;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* brocks-helpers/assets/html-guides/guides.css */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  padding: clamp(1.5rem, 1rem + 3vw, 4rem) clamp(1rem, 0.6rem + 1.2vw, 1.5rem) 6rem;
+  font-size: 17px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Base layouts */
+.guides-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  gap: 2rem;
+  position: relative;
+}
+
+.guides-main {
+  flex: 1;
+  min-width: 0;
+  max-width: var(--measure);
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.prose {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* C1: Shell */
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+h1 {
+  font-family: var(--serif);
+  font-size: clamp(2rem, 1.4rem + 2.4vw, 3rem);
+  line-height: 1.1;
+  font-weight: 400;
+  margin: 0.3rem 0 0;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+h2 {
+  font-family: var(--serif);
+  font-size: clamp(1.35rem, 1.1rem + 1vw, 1.75rem);
+  font-weight: 400;
+  line-height: 1.2;
+  margin: 0;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+p {
+  margin: 0;
+}
+
+.banner, .as-of-strip, .sources-note {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.as-of-strip {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+}
+
+/* TOC Rail */
+.guides-toc {
+  width: 250px;
+  flex-shrink: 0;
+}
+.guides-toc-inner {
+  position: sticky;
+  top: 2rem;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+}
+.guides-toc ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.guides-toc a {
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.guides-toc a[aria-current="true"] {
+  color: var(--ink);
+  font-weight: 600;
+}
+@media (max-width: 1099px) {
+  .guides-toc {
+    display: none;
+  }
+}
+details.guides-toc-mobile {
+  display: none;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 2rem;
+}
+@media (max-width: 1099px) {
+  details.guides-toc-mobile {
+    display: block;
+  }
+}
+
+/* C2: Citation */
+a[data-citation] {
+  color: var(--prod-lk);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--prod-lk);
+  cursor: pointer;
+}
+a[data-citation]:hover {
+  background: color-mix(in srgb, var(--prod-lk) 10%, transparent);
+}
+
+/* C3: Sources */
+details.sources {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  margin-top: 1rem;
+}
+.sources-rail {
+  display: none;
+  width: 300px;
+  flex-shrink: 0;
+}
+.sources-rail-inner {
+  position: sticky;
+  top: 2rem;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 1rem;
+}
+@media (min-width: 1200px) {
+  .sources-rail {
+    display: block;
+  }
+  details.sources {
+    display: none;
+  }
+}
+
+/* C4: Code block */
+figure.code {
+  margin: 1.5rem 0;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  overflow: hidden;
+}
+figure.code figcaption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: color-mix(in srgb, var(--rule) 30%, transparent);
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+figure.code button.copy {
+  background: none;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+figure.code pre {
+  margin: 0;
+  padding: 1rem;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+}
+figure.code[data-lang="ascii"] pre {
+  white-space: pre;
+}
+figure.code[data-lang="shell"] pre {
+  color: var(--ink);
+}
+
+/* C5: Callout card */
+aside.callout {
+  margin: 1.5rem 0;
+  padding: 1rem 1rem 1rem 1.2rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  border-left-width: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+aside.callout[data-kind="note"] { border-left-color: var(--note); }
+aside.callout[data-kind="flag"] { border-left-color: var(--flag); }
+aside.callout[data-kind="info"] { border-left-color: var(--info); }
+aside.callout[data-kind="design-bet"] { border-left-color: var(--design-bet); }
+aside.callout[data-kind="verdict"] { border-left-color: var(--verdict); }
+
+aside.callout .callout-label {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+aside.callout[data-kind="note"] .callout-label { color: var(--note); }
+aside.callout[data-kind="flag"] .callout-label { color: var(--flag); }
+aside.callout[data-kind="info"] .callout-label { color: var(--info); }
+aside.callout[data-kind="design-bet"] .callout-label { color: var(--design-bet); }
+aside.callout[data-kind="verdict"] .callout-label { color: var(--verdict); }
+
+/* C6: Badge / chip */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-family: var(--mono);
+}
+.badge[data-axis="impl"][data-val="implemented"] {
+  background: color-mix(in srgb, var(--st-implemented) 15%, transparent);
+  color: var(--st-implemented);
+}
+.badge[data-axis="impl"][data-val="partial"] {
+  background: color-mix(in srgb, var(--st-partial) 15%, transparent);
+  color: var(--st-partial);
+}
+.badge[data-axis="impl"][data-val="proposed"] {
+  background: color-mix(in srgb, var(--st-proposed) 15%, transparent);
+  color: var(--st-proposed);
+}
+.badge[data-axis="impl"][data-val="absent"] {
+  background: color-mix(in srgb, var(--st-absent) 15%, transparent);
+  color: var(--st-absent);
+}
+.badge[data-axis="lifecycle"][data-val="proposed"] {
+  background: color-mix(in srgb, var(--lc-proposed) 15%, transparent);
+  color: var(--lc-proposed);
+}
+.badge[data-axis="lifecycle"][data-val="accepted"] {
+  background: color-mix(in srgb, var(--lc-accepted) 15%, transparent);
+  color: var(--lc-accepted);
+}
+.badge[data-axis="lifecycle"][data-val="superseded"] {
+  background: color-mix(in srgb, var(--lc-superseded) 15%, transparent);
+  color: var(--lc-superseded);
+}
+.badge[data-kind="meta"] {
+  background: var(--rule);
+  color: var(--ink);
+}
+
+/* C7: Table */
+.table-scroll {
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+}
+table.guides-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  background: var(--surface);
+}
+table.guides-table th, table.guides-table td {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+}
+table.guides-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 600;
+  z-index: 1;
+}
+table.guides-table td.k {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+}
+table.guides-table td.num {
+  font-variant-numeric: tabular-nums;
+}
+table.guides-table tbody tr:last-child td {
+  border-bottom: none;
+}
+table.guides-table tbody tr[data-row-id] {
+  cursor: pointer;
+}
+table.guides-table tbody tr[data-row-id]:hover {
+  background: color-mix(in srgb, var(--rule) 20%, transparent);
+}
+
+/* C18: Flow strip */
+.flow-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+}
+.flow-strip .arrow {
+  color: var(--ink-soft);
+}
+
+/* C19: Cards, numbered sections, files changed */
+.guides-card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 1rem;
+}
+.guides-card.severity-major {
+  border-left: 4px solid var(--st-absent);
+}
+.guides-card.severity-minor {
+  border-left: 4px solid var(--st-partial);
+}
+.numbered-section {
+  counter-reset: guides-section;
+}
+.numbered-section > h2::before {
+  counter-increment: guides-section;
+  content: counter(guides-section, decimal-leading-zero) " ";
+  color: var(--ink-soft);
+  margin-right: 0.5rem;
+}
+
+ul.files-changed {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+ul.files-changed li {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+}
+
+/* C20: Schematic panel */
+.schematic {
+  background: var(--schematic);
+  border: 1px solid var(--schematic-rule);
+  border-radius: 6px;
+  padding: 1.5rem;
+  overflow-x: auto;
+  margin-top: 1.5rem;
+}
+.schematic-caption {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+/* Popover for C2 */
+#citation-popover {
+  position: absolute;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  padding: 0.5rem;
+  z-index: 1000;
+  display: none;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 250px;
+}
+#citation-popover.visible {
+  display: flex;
+}
+#citation-popover .popover-header {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 0.5rem;
+}
+#citation-popover .popover-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+#citation-popover a, #citation-popover button {
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
+  color: var(--ink);
+  cursor: pointer;
+  border-radius: 4px;
+  text-decoration: none;
+  display: block;
+}
+#citation-popover a:hover, #citation-popover button:hover {
+  background: color-mix(in srgb, var(--rule) 50%, transparent);
+}
+
+/* C17: Grouped steps */
+.phase-group {
+  margin: 2rem 0;
+}
+.phase-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 0.5rem;
+}
+.phase-header h2, .phase-header h3 {
+  margin: 0;
+}
+.phase-step-count {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 9999px;
+  padding: 0.1rem 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+.phase-header button.copy-all {
+  margin-left: auto;
+  background: none;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 0.3rem 0.6rem;
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  color: var(--ink);
+  cursor: pointer;
+}
+.phase-header button.copy-all:hover {
+  background: color-mix(in srgb, var(--rule) 20%, transparent);
+}
+.phase-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+.step {
+  display: flex;
+  gap: 1rem;
+}
+.step-number {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  color: var(--ink);
+}
+.step-content {
+  flex: 1;
+  min-width: 0;
+}
+.step-content p {
+  margin-top: 0.2rem;
+  margin-bottom: 0.5rem;
+}
+.step-content figure.code {
+  margin: 0.5rem 0;
+}
+.step-content figure.code.output {
+  opacity: 0.8;
+}
+
+/* C11b Sequence Diagram */
+.seq-msg-link {
+  cursor: pointer;
+}
+.seq-msg-link:hover text {
+  text-decoration: underline;
+  fill: var(--prod-lk);
+}
+.seq-msg-link:hover path, .seq-msg-link:hover line {
+  stroke: var(--prod-lk);
+}
+
+/* C12 State Diagram & C13 Graph Diagram */
+.state-diagram-container, .graph-diagram-container {
+  position: relative;
+  display: flex;
+}
+.states-wrapper, .graph-wrapper {
+  flex: 1;
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.graph-lane {
+  border: 1px dashed var(--rule);
+  padding: 1rem;
+  min-width: 200px;
+}
+.lane-header {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.lane-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.state-node, .graph-node {
+  background: var(--surface);
+  border: 2px solid var(--rule);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: var(--sans);
+  color: var(--ink);
+  text-align: left;
+}
+.state-node:hover, .graph-node:hover {
+  border-color: var(--ink);
+}
+.status-implemented { border-color: var(--st-implemented); }
+.status-partial { border-color: var(--st-partial); }
+.status-proposed { border-color: var(--st-proposed); border-style: dashed; }
+.status-absent { border-color: var(--st-absent); }
+
+/* C14 Inspector */
+.inspector {
+  display: none;
+  flex-direction: column;
+  width: 300px;
+  background: var(--surface);
+  border-left: 1px solid var(--rule);
+  padding: 1rem;
+  margin-left: 1rem;
+  flex-shrink: 0;
+  max-height: 500px;
+  overflow-y: auto;
+}
+.inspector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+.inspector-header h3 { margin: 0; }
+.close-inspector {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: var(--ink-soft);
+}
+
+/* C15 Master-Detail */
+.master-detail-layout {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+.master-list {
+  width: 250px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.master-list button {
+  background: none;
+  border: 1px solid transparent;
+  text-align: left;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 6px;
+  font-family: var(--sans);
+  color: var(--ink);
+}
+.master-list button:hover {
+  background: color-mix(in srgb, var(--rule) 20%, transparent);
+}
+.master-list button.active {
+  background: var(--surface);
+  border-color: var(--rule);
+  font-weight: bold;
+}
+.detail-pane {
+  flex: 1;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 2rem;
+}
+.detail-pane > div {
+  display: none;
+}
+.detail-pane > div.active {
+  display: block;
+}
+/* C8: Capability Matrix */
+.capability-matrix-controls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.matrix-filter {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-family: var(--sans);
+  cursor: pointer;
+  color: var(--ink);
+}
+.matrix-filter.active {
+  background: var(--ink);
+  color: var(--surface);
+}
+table.guides-matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  background: var(--surface);
+}
+table.guides-matrix th, table.guides-matrix td {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+}
+table.guides-matrix th {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  z-index: 1;
+}
+table.guides-matrix tbody.matrix-group::before {
+  content: attr(data-group);
+  display: table-caption;
+  font-family: var(--serif);
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+.mark-yes { color: var(--st-implemented); font-weight: bold; }
+.mark-partial { color: var(--st-partial); font-weight: bold; }
+.mark-no { color: var(--st-absent); font-weight: bold; }
+.mark-designed { color: var(--st-proposed); font-weight: bold; }
+.mark-elsewhere { color: var(--prod-pkm); font-weight: bold; }
+.mark-na { color: var(--ink-soft); }
+.matrix-row { cursor: pointer; }
+.matrix-row:hover { background: color-mix(in srgb, var(--rule) 20%, transparent); }
+
+/* C9: Entity Diagram */
+.entity-diagram-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.entity-diagram-svg {
+  width: 100%;
+  height: auto;
+  font-family: var(--mono);
+}
+.entity-box rect {
+  fill: var(--surface);
+  stroke: var(--ink);
+  stroke-width: 1;
+}
+.entity-box.style-dashed rect { stroke-dasharray: 4 4; }
+.entity-box.style-gone rect { stroke: var(--st-absent); opacity: 0.5; }
+.entity-header {
+  font-weight: bold;
+  font-size: 14px;
+  fill: var(--ink);
+}
+.entity-field {
+  font-size: 12px;
+  fill: var(--ink-soft);
+}
+.entity-field.mark-ok { fill: var(--st-implemented); }
+.entity-field.mark-stale { fill: var(--st-partial); }
+.entity-edge path {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+.entity-edge.style-new path { stroke: var(--st-implemented); stroke-dasharray: 4 4; }
+.entity-edge.style-bad path { stroke: var(--st-absent); }
+
+/* C10: Layer Stack */
+.layer-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.layer-band {
+  border-left: 4px solid var(--st-implemented);
+  background: var(--surface);
+  padding: 1rem;
+  border-radius: 0 6px 6px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+}
+.layer-band.style-designed {
+  border-left: 4px dashed var(--st-proposed);
+  background: color-mix(in srgb, var(--st-proposed) 5%, var(--surface));
+}
+.layer-title {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: var(--ink);
+  display: flex;
+  justify-content: space-between;
+}
+.walkthrough-row {
+  display: flex;
+  gap: 1rem;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  padding: 0.3rem 0;
+  border-top: 1px solid var(--rule);
+}
+.walkthrough-row:first-of-type {
+  border-top: none;
+}
+.walkthrough-field { color: var(--ink-soft); width: 120px; flex-shrink: 0; }
+.walkthrough-val { color: var(--ink); flex: 1; }
+.walkthrough-row.tint-changed { background: color-mix(in srgb, var(--st-implemented) 10%, transparent); }
+.walkthrough-row.tint-stale { background: color-mix(in srgb, var(--st-partial) 10%, transparent); }
+
+</style>
+<script>
+// brocks-helpers/assets/html-guides/guides.js
+
+document.addEventListener('DOMContentLoaded', () => {
+  initSourcesObserver();
+  initCopyButtons();
+  initCitations();
+});
+
+// C3: Sources Observer (right rail)
+function initSourcesObserver() {
+  const sections = document.querySelectorAll('section[id]');
+  const railInner = document.querySelector('.sources-rail-inner');
+  if (!railInner || sections.length === 0) return;
+
+  const observer = new IntersectionObserver((entries) => {
+    // Find the first intersecting section to show its sources
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        const inlineSources = entry.target.querySelector('details.sources');
+        if (inlineSources) {
+          railInner.innerHTML = `<h3>Sources for ${id}</h3>` + inlineSources.innerHTML;
+        } else {
+          railInner.innerHTML = `<p class="sources-note">No sources checked for this section.</p>`;
+        }
+        break;
+      }
+    }
+  }, {
+    rootMargin: '-20% 0px -60% 0px',
+    threshold: 0
+  });
+
+  sections.forEach(sec => observer.observe(sec));
+}
+
+// C4: Code block copy buttons
+function initCopyButtons() {
+  const buttons = document.querySelectorAll('figure.code button.copy');
+  buttons.forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const figure = btn.closest('figure.code');
+      const pre = figure.querySelector('pre');
+      const lang = figure.getAttribute('data-lang');
+      let textToCopy = pre.innerText;
+
+      if (lang === 'shell') {
+        // Strip out leading $ prompts
+        textToCopy = textToCopy.split('\n').map(line => {
+          if (line.trim().startsWith('$ ')) {
+            return line.trim().substring(2);
           }
-          var line = anchor.getAttribute("data-line");
-          var href = "../../" + path;
-          if (line) {
-            href += "#L" + line;
-          }
-          anchor.setAttribute("href", href);
-          anchor.setAttribute("title", path + (line ? ":" + line : ""));
-        });
+          return line;
+        }).join('\n');
       }
 
-      wireRepoCitations();
-    })();
-  </script>
+      try {
+        await navigator.clipboard.writeText(textToCopy);
+        const originalText = btn.innerText;
+        btn.innerText = 'Copied';
+        btn.setAttribute('aria-live', 'polite');
+        setTimeout(() => {
+          btn.innerText = originalText;
+          btn.removeAttribute('aria-live');
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy text: ', err);
+      }
+    });
+  });
+}
+
+// C2: Citation Popover
+function initCitations() {
+  const popover = document.createElement('div');
+  popover.id = 'citation-popover';
+  popover.innerHTML = `
+    <div class="popover-header"></div>
+    <div class="popover-actions">
+      <a class="action-primary" href="#"></a>
+      <hr style="margin:0.25rem 0; border:none; border-top:1px solid var(--rule);">
+      <button class="action-start-viewer">Start viewer (copy command)</button>
+      <a class="action-cursor" href="#">Open in Cursor</a>
+      <a class="action-github" href="#" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <button class="action-copy-path">Copy Path</button>
+    </div>
+  `;
+  document.body.appendChild(popover);
+
+  const repoMapMeta = document.querySelector('meta[name="guides:repo-dirs"]');
+  const repoDirs = {};
+  if (repoMapMeta) {
+    repoMapMeta.content.split(';').forEach(pair => {
+      const [k, v] = pair.split('=');
+      if (k && v) repoDirs[k] = v;
+    });
+  }
+
+  const isViewer = window.location.protocol.startsWith('http');
+
+  document.addEventListener('click', (e) => {
+    const citation = e.target.closest('a[data-citation]');
+    if (citation) {
+      e.preventDefault();
+      
+      const repo = citation.getAttribute('data-repo');
+      const path = citation.getAttribute('data-path');
+      const line = citation.getAttribute('data-line') || '';
+      
+      const header = popover.querySelector('.popover-header');
+      header.textContent = `${repo} / ${path}${line ? ':' + line : ''}`;
+
+      const primary = popover.querySelector('.action-primary');
+      const viewCursor = popover.querySelector('.action-cursor');
+      const viewGithub = popover.querySelector('.action-github');
+      const copyPath = popover.querySelector('.action-copy-path');
+      const startViewer = popover.querySelector('.action-start-viewer');
+
+      let cursorAbsPath = path;
+      const match = window.location.pathname.match(/^(.*)\/([^/]+)\/docs\/html-guides\//);
+      if (match) {
+        const parentDir = match[1];
+        const targetDir = repoDirs[repo] || repo;
+        cursorAbsPath = `${parentDir}/${targetDir}/${path}`;
+      }
+
+      if (isViewer) {
+        primary.textContent = 'View Code';
+        primary.href = `/view/${repo}/${path}?line=${line}#L${line}`;
+      } else {
+        primary.textContent = 'Open in Cursor';
+        primary.href = `cursor://file/${cursorAbsPath}:${line || 1}`;
+      }
+      
+      viewCursor.href = `cursor://file/${cursorAbsPath}:${line || 1}`;
+      viewCursor.style.display = (primary.textContent === 'Open in Cursor') ? 'none' : 'block';
+
+      viewGithub.href = `https://github.com/brock-run/${repo}/blob/main/${path}#L${line || 1}`;
+
+      copyPath.onclick = (ce) => {
+        ce.stopPropagation();
+        navigator.clipboard.writeText(path);
+      };
+      
+      startViewer.onclick = (ce) => {
+        ce.stopPropagation();
+        navigator.clipboard.writeText("make guides-serve");
+        const original = startViewer.textContent;
+        startViewer.textContent = "Copied command!";
+        setTimeout(() => startViewer.textContent = original, 2000);
+      };
+
+      const rect = citation.getBoundingClientRect();
+      popover.style.left = `${rect.left + window.scrollX}px`;
+      popover.style.top = `${rect.bottom + window.scrollY + 8}px`;
+      popover.classList.add('visible');
+    } else if (!e.target.closest('#citation-popover')) {
+      popover.classList.remove('visible');
+    }
+  });
+}
+
+// C17: Grouped steps (Copy all commands)
+function initPhaseCopyButtons() {
+  document.querySelectorAll('.phase-header button.copy-all').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const group = btn.closest('.phase-group');
+      const shells = group.querySelectorAll('figure.code[data-lang="shell"] pre');
+      let fullScript = Array.from(shells).map(pre => {
+        return pre.innerText.split('\n').map(line => {
+          if (line.trim().startsWith('$ ')) return line.trim().substring(2);
+          return line;
+        }).join('\n');
+      }).join('\n');
+      
+      try {
+        await navigator.clipboard.writeText(fullScript);
+        const originalText = btn.innerText;
+        btn.innerText = 'Copied all!';
+        btn.setAttribute('aria-live', 'polite');
+        setTimeout(() => {
+          btn.innerText = originalText;
+          btn.removeAttribute('aria-live');
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy', err);
+      }
+    });
+  });
+}
+
+// C11b: Sequence Diagram
+function initSequenceDiagrams() {
+  document.querySelectorAll('script[type="application/json"][data-guide="sequence"]').forEach(script => {
+    try {
+      const data = JSON.parse(script.textContent);
+      const container = document.createElement('div');
+      container.className = 'sequence-diagram-container schematic';
+      
+      const SVG_NS = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(SVG_NS, "svg");
+      
+      // Configuration
+      const config = { actorWidth: 100, actorHeight: 40, colGap: 150, rowHeight: 60, startY: 20 };
+      
+      const width = config.colGap * Math.max(1, data.actors.length - 1) + config.actorWidth + 40;
+      const height = config.startY + config.actorHeight + 20 + data.messages.length * config.rowHeight + 40;
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      svg.style.width = "100%";
+      svg.style.height = "auto";
+      svg.style.minWidth = `${width}px`;
+
+      const defs = document.createElementNS(SVG_NS, "defs");
+      const marker = document.createElementNS(SVG_NS, "marker");
+      marker.setAttribute("id", "arrowhead");
+      marker.setAttribute("markerWidth", "10");
+      marker.setAttribute("markerHeight", "7");
+      marker.setAttribute("refX", "9");
+      marker.setAttribute("refY", "3.5");
+      marker.setAttribute("orient", "auto");
+      const polygon = document.createElementNS(SVG_NS, "polygon");
+      polygon.setAttribute("points", "0 0, 10 3.5, 0 7");
+      polygon.setAttribute("fill", "var(--ink)");
+      marker.appendChild(polygon);
+      defs.appendChild(marker);
+      svg.appendChild(defs);
+
+      const actorX = {};
+      data.actors.forEach((actor, i) => {
+        const x = 20 + i * config.colGap;
+        actorX[actor.id] = x + config.actorWidth / 2;
+        
+        const g = document.createElementNS(SVG_NS, "g");
+        
+        // Lifeline
+        const line = document.createElementNS(SVG_NS, "line");
+        line.setAttribute("x1", actorX[actor.id]);
+        line.setAttribute("y1", config.startY + config.actorHeight);
+        line.setAttribute("x2", actorX[actor.id]);
+        line.setAttribute("y2", height - 20);
+        line.setAttribute("stroke", "var(--rule)");
+        line.setAttribute("stroke-dasharray", "4 4");
+        g.appendChild(line);
+        
+        // Actor box
+        const rect = document.createElementNS(SVG_NS, "rect");
+        rect.setAttribute("x", x);
+        rect.setAttribute("y", config.startY);
+        rect.setAttribute("width", config.actorWidth);
+        rect.setAttribute("height", config.actorHeight);
+        rect.setAttribute("fill", "var(--surface)");
+        rect.setAttribute("stroke", "var(--ink)");
+        rect.setAttribute("rx", "4");
+        g.appendChild(rect);
+        
+        // Label
+        const text = document.createElementNS(SVG_NS, "text");
+        text.setAttribute("x", actorX[actor.id]);
+        text.setAttribute("y", config.startY + config.actorHeight / 2 + 5);
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("fill", "var(--ink)");
+        text.setAttribute("font-family", "var(--mono)");
+        text.setAttribute("font-size", "12px");
+        text.textContent = actor.label;
+        g.appendChild(text);
+        
+        svg.appendChild(g);
+      });
+
+      let currentY = config.startY + config.actorHeight + 40;
+      
+      data.messages.forEach(msg => {
+        const x1 = actorX[msg.from];
+        const x2 = actorX[msg.to];
+        if (x1 === undefined || x2 === undefined) return;
+        
+        const isSelf = x1 === x2;
+        const dir = x1 < x2 ? 1 : -1;
+        
+        const g = document.createElementNS(SVG_NS, "g");
+        
+        let linkWrapper = g;
+        if (msg.citation) {
+          linkWrapper = document.createElementNS(SVG_NS, "a");
+          linkWrapper.setAttribute("class", "seq-msg-link");
+          linkWrapper.setAttribute("data-citation", msg.citation.repo || "");
+          linkWrapper.setAttribute("data-repo", msg.citation.repo || "");
+          linkWrapper.setAttribute("data-path", msg.citation.path || "");
+          if (msg.citation.line) linkWrapper.setAttribute("data-line", msg.citation.line);
+          linkWrapper.setAttribute("href", "#");
+          g.appendChild(linkWrapper);
+        }
+
+        if (isSelf) {
+          const path = document.createElementNS(SVG_NS, "path");
+          path.setAttribute("d", `M ${x1},${currentY} L ${x1+30},${currentY} L ${x1+30},${currentY+20} L ${x1},${currentY+20}`);
+          path.setAttribute("fill", "none");
+          path.setAttribute("stroke", "var(--ink)");
+          path.setAttribute("marker-end", "url(#arrowhead)");
+          linkWrapper.appendChild(path);
+          
+          const text = document.createElementNS(SVG_NS, "text");
+          text.setAttribute("x", x1 + 35);
+          text.setAttribute("y", currentY + 14);
+          text.setAttribute("fill", "var(--ink)");
+          text.setAttribute("font-family", "var(--sans)");
+          text.setAttribute("font-size", "12px");
+          text.textContent = msg.label;
+          linkWrapper.appendChild(text);
+          
+          currentY += config.rowHeight;
+        } else {
+          const line = document.createElementNS(SVG_NS, "line");
+          line.setAttribute("x1", x1);
+          line.setAttribute("y1", currentY);
+          line.setAttribute("x2", x2 - dir * 12);
+          line.setAttribute("y2", currentY);
+          line.setAttribute("stroke", "var(--ink)");
+          if (msg.return) line.setAttribute("stroke-dasharray", "4 4");
+          line.setAttribute("marker-end", "url(#arrowhead)");
+          linkWrapper.appendChild(line);
+          
+          const text = document.createElementNS(SVG_NS, "text");
+          text.setAttribute("x", (x1 + x2) / 2);
+          text.setAttribute("y", currentY - 8);
+          text.setAttribute("text-anchor", "middle");
+          text.setAttribute("fill", "var(--ink)");
+          text.setAttribute("font-family", "var(--sans)");
+          text.setAttribute("font-size", "12px");
+          text.textContent = msg.label;
+          linkWrapper.appendChild(text);
+          
+          currentY += config.rowHeight;
+        }
+        svg.appendChild(g);
+      });
+
+      container.appendChild(svg);
+      script.parentNode.insertBefore(container, script.nextSibling);
+    } catch (e) {
+      console.error("Failed to render sequence diagram", e);
+    }
+  });
+}
+
+// C14 Inspector
+function showInspector(nodeId, data, container) {
+  let inspector = container.querySelector('.inspector');
+  if (!inspector) {
+    inspector = document.createElement('div');
+    inspector.className = 'inspector';
+    container.appendChild(inspector);
+  }
+  
+  const template = document.querySelector(`template[data-for="${nodeId}"]`);
+  const content = template ? template.innerHTML : `<p>No details found for ${nodeId}</p>`;
+  
+  inspector.innerHTML = `
+    <div class="inspector-header">
+      <h3>${nodeId}</h3>
+      <button class="close-inspector">✕</button>
+    </div>
+    <div class="inspector-body">${content}</div>
+  `;
+  
+  inspector.querySelector('.close-inspector').addEventListener('click', () => {
+    inspector.style.display = 'none';
+  });
+  inspector.style.display = 'flex';
+}
+
+// C12 State Diagram
+function initStateDiagrams() {
+  document.querySelectorAll('script[type="application/json"][data-guide="states"]').forEach(script => {
+    try {
+      const data = JSON.parse(script.textContent);
+      const container = document.createElement('div');
+      container.className = 'state-diagram-container schematic';
+      
+      const statesDiv = document.createElement('div');
+      statesDiv.className = 'states-wrapper';
+      
+      data.states.forEach(s => {
+        const btn = document.createElement('button');
+        btn.className = `state-node status-${s.status || 'default'}`;
+        btn.textContent = s.label;
+        btn.setAttribute('data-id', s.id);
+        btn.addEventListener('click', () => {
+          showInspector(s.id, s, container);
+        });
+        statesDiv.appendChild(btn);
+      });
+      
+      container.appendChild(statesDiv);
+      script.parentNode.insertBefore(container, script.nextSibling);
+    } catch (e) {
+      console.error(e);
+    }
+  });
+}
+
+// C13 Graph Diagram
+function initGraphDiagrams() {
+  document.querySelectorAll('script[type="application/json"][data-guide="graph"]').forEach(script => {
+    try {
+      const data = JSON.parse(script.textContent);
+      const container = document.createElement('div');
+      container.className = 'graph-diagram-container schematic';
+      
+      const graphWrapper = document.createElement('div');
+      graphWrapper.className = 'graph-wrapper';
+      
+      const lanesMap = {};
+      (data.lanes || []).forEach(lane => {
+        const laneDiv = document.createElement('div');
+        laneDiv.className = 'graph-lane';
+        laneDiv.innerHTML = `<div class="lane-header">${lane.label || lane.id}</div>`;
+        const laneContent = document.createElement('div');
+        laneContent.className = 'lane-content';
+        laneDiv.appendChild(laneContent);
+        graphWrapper.appendChild(laneDiv);
+        lanesMap[lane.id] = laneContent;
+      });
+      
+      (data.nodes || []).forEach(node => {
+        const btn = document.createElement('button');
+        btn.className = `graph-node status-${node.status || 'default'}`;
+        btn.innerHTML = `<span class="node-id">${node.id}</span> <span class="node-label">${node.label}</span>`;
+        btn.setAttribute('data-id', node.id);
+        btn.addEventListener('click', () => {
+          showInspector(node.id, node, container);
+        });
+        
+        const targetLane = lanesMap[node.lane] || lanesMap[Object.keys(lanesMap)[0]];
+        if (targetLane) targetLane.appendChild(btn);
+      });
+      
+      container.appendChild(graphWrapper);
+      script.parentNode.insertBefore(container, script.nextSibling);
+    } catch (e) {
+      console.error(e);
+    }
+  });
+}
+
+// C15 Master-Detail
+function initMasterDetail() {
+  document.querySelectorAll('.master-detail-layout').forEach(container => {
+    const listItems = container.querySelectorAll('.master-list [data-target]');
+    const readerPanes = container.querySelectorAll('.detail-pane [data-id]');
+    
+    function showDetail(id) {
+      listItems.forEach(item => {
+        if (item.getAttribute('data-target') === id) {
+          item.classList.add('active');
+        } else {
+          item.classList.remove('active');
+        }
+      });
+      readerPanes.forEach(pane => {
+        if (pane.getAttribute('data-id') === id) {
+          pane.classList.add('active');
+        } else {
+          pane.classList.remove('active');
+        }
+      });
+    }
+    
+    listItems.forEach(item => {
+      item.addEventListener('click', () => {
+        showDetail(item.getAttribute('data-target'));
+      });
+    });
+    
+    if (listItems.length > 0) {
+      showDetail(listItems[0].getAttribute('data-target'));
+    }
+  });
+}
+
+// Update initialization to run these functions
+const origInit = document.addEventListener;
+document.addEventListener = function(type, fn) {
+  if (type === 'DOMContentLoaded') {
+    origInit.call(this, type, () => {
+      fn();
+      if (typeof initPhaseCopyButtons === 'function') initPhaseCopyButtons();
+      if (typeof initSequenceDiagrams === 'function') initSequenceDiagrams();
+      if (typeof initStateDiagrams === 'function') initStateDiagrams();
+      if (typeof initGraphDiagrams === 'function') initGraphDiagrams();
+      if (typeof initCapabilityMatrices === 'function') initCapabilityMatrices();
+      if (typeof initEntityDiagrams === 'function') initEntityDiagrams();
+
+      if (typeof initMasterDetail === 'function') initMasterDetail();
+    });
+  } else {
+    origInit.call(this, type, fn);
+  }
+};
+// C8 Capability Matrix
+function initCapabilityMatrices() {
+  document.querySelectorAll('.guides-matrix').forEach(matrix => {
+    const controls = matrix.previousElementSibling;
+    if (!controls || !controls.classList.contains('capability-matrix-controls')) return;
+    
+    controls.addEventListener('click', e => {
+      if (e.target.classList.contains('matrix-filter')) {
+        const filterMark = e.target.getAttribute('data-filter');
+        const colIdx = parseInt(e.target.getAttribute('data-col'), 10);
+        
+        const isActive = e.target.classList.contains('active');
+        controls.querySelectorAll('.matrix-filter').forEach(btn => btn.classList.remove('active'));
+        
+        const rows = matrix.querySelectorAll('tbody tr');
+        if (isActive) {
+          // Clear filter
+          rows.forEach(r => r.style.display = '');
+        } else {
+          e.target.classList.add('active');
+          rows.forEach(r => {
+            const cells = r.querySelectorAll('td');
+            if (cells.length > colIdx) {
+              const cellText = cells[colIdx].textContent.trim();
+              if (cellText.includes(filterMark)) {
+                r.style.display = '';
+              } else {
+                r.style.display = 'none';
+              }
+            }
+          });
+        }
+      }
+    });
+
+    matrix.querySelectorAll('tbody tr').forEach(row => {
+      row.addEventListener('click', () => {
+        const id = row.getAttribute('data-row-id');
+        if (id) showInspector(id, null, matrix.parentElement);
+      });
+    });
+  });
+}
+
+// C9 Entity Diagram
+function initEntityDiagrams() {
+  document.querySelectorAll('script[type="application/json"][data-guide="entities"]').forEach(script => {
+    try {
+      const data = JSON.parse(script.textContent);
+      const container = document.createElement('div');
+      container.className = 'entity-diagram-container schematic';
+      
+      const SVG_NS = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(SVG_NS, "svg");
+      svg.setAttribute("class", "entity-diagram-svg");
+      
+      const boxWidth = 220;
+      const boxHeight = 100;
+      const gapX = 100;
+      const gapY = 80;
+      const startX = 20;
+      const startY = 20;
+
+      let maxX = 0;
+      let maxY = 0;
+      
+      const defs = document.createElementNS(SVG_NS, "defs");
+      const marker = document.createElementNS(SVG_NS, "marker");
+      marker.setAttribute("id", "arrowhead-entity");
+      marker.setAttribute("markerWidth", "10");
+      marker.setAttribute("markerHeight", "7");
+      marker.setAttribute("refX", "9");
+      marker.setAttribute("refY", "3.5");
+      marker.setAttribute("orient", "auto");
+      const polygon = document.createElementNS(SVG_NS, "polygon");
+      polygon.setAttribute("points", "0 0, 10 3.5, 0 7");
+      polygon.setAttribute("fill", "var(--ink)");
+      marker.appendChild(polygon);
+      defs.appendChild(marker);
+      svg.appendChild(defs);
+
+      const positions = {};
+
+      data.boxes.forEach((box, i) => {
+        const col = box.col || (i % 3);
+        const row = box.row || Math.floor(i / 3);
+        const x = startX + col * (boxWidth + gapX);
+        const y = startY + row * (boxHeight + gapY);
+        
+        positions[box.id] = { x: x + boxWidth/2, y: y + boxHeight/2, left: x, right: x + boxWidth, top: y, bottom: y + boxHeight };
+        
+        maxX = Math.max(maxX, x + boxWidth);
+        maxY = Math.max(maxY, y + boxHeight);
+        
+        const g = document.createElementNS(SVG_NS, "g");
+        g.setAttribute("class", `entity-box style-${box.style || 'solid'}`);
+        
+        const h = 30 + (box.fields ? box.fields.length * 20 : 0) + 10;
+        positions[box.id].bottom = y + h;
+        maxY = Math.max(maxY, y + h);
+
+        const rect = document.createElementNS(SVG_NS, "rect");
+        rect.setAttribute("x", x);
+        rect.setAttribute("y", y);
+        rect.setAttribute("width", boxWidth);
+        rect.setAttribute("height", h);
+        rect.setAttribute("rx", "6");
+        g.appendChild(rect);
+        
+        const title = document.createElementNS(SVG_NS, "text");
+        title.setAttribute("class", "entity-header");
+        title.setAttribute("x", x + 10);
+        title.setAttribute("y", y + 20);
+        title.textContent = box.title;
+        g.appendChild(title);
+        
+        if (box.fields) {
+          box.fields.forEach((f, fi) => {
+            const field = document.createElementNS(SVG_NS, "text");
+            field.setAttribute("class", `entity-field mark-${f.mark || 'plain'}`);
+            field.setAttribute("x", x + 10);
+            field.setAttribute("y", y + 45 + fi * 20);
+            field.textContent = f.name;
+            g.appendChild(field);
+          });
+        }
+        
+        svg.appendChild(g);
+      });
+      
+      data.edges.forEach(edge => {
+        const p1 = positions[edge.from];
+        const p2 = positions[edge.to];
+        if (!p1 || !p2) return;
+        
+        const g = document.createElementNS(SVG_NS, "g");
+        g.setAttribute("class", `entity-edge style-${edge.style || 'solid'}`);
+        
+        const path = document.createElementNS(SVG_NS, "path");
+        
+        let startX = p1.x;
+        let startY = p1.bottom;
+        let endX = p2.x;
+        let endY = p2.top;
+        
+        if (p1.row === p2.row) {
+          startX = p1.right;
+          startY = (p1.top + p1.bottom) / 2;
+          endX = p2.left;
+          endY = (p2.top + p2.bottom) / 2;
+        } else if (p1.top > p2.bottom) {
+          startY = p1.top;
+          endY = p2.bottom;
+        }
+
+        path.setAttribute("d", `M ${startX},${startY} C ${startX},${(startY+endY)/2} ${endX},${(startY+endY)/2} ${endX},${endY}`);
+        path.setAttribute("marker-end", "url(#arrowhead-entity)");
+        g.appendChild(path);
+        
+        if (edge.label) {
+          const text = document.createElementNS(SVG_NS, "text");
+          text.setAttribute("x", (startX + endX) / 2);
+          text.setAttribute("y", (startY + endY) / 2 - 5);
+          text.setAttribute("text-anchor", "middle");
+          text.setAttribute("fill", "var(--ink)");
+          text.setAttribute("font-size", "12px");
+          text.textContent = edge.label;
+          g.appendChild(text);
+        }
+        
+        svg.appendChild(g);
+      });
+      
+      svg.setAttribute("viewBox", `0 0 ${maxX + 40} ${maxY + 40}`);
+      container.appendChild(svg);
+      
+      // Text equivalent below
+      const fallback = document.createElement('div');
+      fallback.style.display = 'none'; // Accessible via screen reader or alternative rendering
+      fallback.textContent = JSON.stringify(data);
+      container.appendChild(fallback);
+      
+      script.parentNode.insertBefore(container, script.nextSibling);
+    } catch (e) {
+      console.error("Failed to parse entity diagram", e);
+    }
+  });
+}
+
+</script>
+<!-- guides:runtime end -->
+</head>
+<body>
+<div class="guides-page">
+  <aside class="guides-toc">
+    <div class="guides-toc-inner">
+      <ul>
+        <li><a href="#reading-guide" aria-current="true">Reading Guide</a></li>
+        <li><a href="#verdict">Verdict</a></li>
+        <li><a href="#matrix">Readiness Matrix</a></li>
+        <li><a href="#build-order">Build Order</a></li>
+        <li><a href="#questions">Questions for BRO-5</a></li>
+        <li><a href="#layer-picture">Layer Picture</a></li>
+      </ul>
+    </div>
+  </aside>
+  <main class="guides-main">
+    <header class="prose">
+      <p class="eyebrow">living-knowledge &middot; design gap</p>
+      <h1>Design Gap</h1>
+      <div class="banner">What would have to be true before each Living Knowledge component can be built, and what already exists elsewhere that it can reuse?</div>
+      <div class="as-of-strip">As of 2026-10-04</div>
+    </header>
+
+    <section id="reading-guide" class="prose numbered-section">
+      <h2>Reading Guide</h2>
+      <aside class="callout" data-kind="note">
+        <div class="callout-label">Note</div>
+        <p>This design gap outlines the readiness of each component (LK00–LK10). Living Knowledge has no application code yet. Marks indicate whether decisions, contracts, and code exist locally or in sibling repos.</p>
+      </aside>
+    </section>
+
+    <section id="verdict" class="prose numbered-section">
+      <h2>Verdict</h2>
+      <aside class="callout" data-kind="verdict">
+        <div class="callout-label">Verdict</div>
+        <p>0 of 11 components are built; 1 decision (BRO-5) gates all of them; 7 of 11 have a running analog in a sibling product.</p>
+      </aside>
+    </section>
+
+    <section id="matrix" class="prose numbered-section">
+      <h2>Readiness Matrix</h2>
+      <div class="capability-matrix-controls">
+        <span class="matrix-filter" data-filter="✓" data-col="1">Show Yes</span>
+        <span class="matrix-filter" data-filter="✗" data-col="1">Show No</span>
+      </div>
+      <table class="guides-matrix">
+        <thead>
+          <tr>
+            <th>Component</th>
+            <th>Decided</th>
+            <th>Contract</th>
+            <th>Code</th>
+            <th>Tests</th>
+            <th>Analog elsewhere</th>
+            <th>Unblocked</th>
+          </tr>
+        </thead>
+        <tbody class="matrix-group" data-group="Foundation">
+          <tr data-row-id="LK00" class="matrix-row">
+            <td>LK00 Contracts and provenance</td>
+            <td class="mark-designed">D</td>
+            <td class="mark-designed">D</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-designed">D</td>
+            <td class="mark-no">✗</td>
+          </tr>
+          <tr data-row-id="LK01" class="matrix-row">
+            <td>LK01 Pilot boundary and owner</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-no">✗</td>
+          </tr>
+        </tbody>
+        <tbody class="matrix-group" data-group="Admission">
+          <tr data-row-id="LK02" class="matrix-row">
+            <td>LK02 Source evidence and preservation</td>
+            <td class="mark-designed">D</td>
+            <td class="mark-designed">D</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-elsewhere">↑</td>
+            <td class="mark-no">✗</td>
+          </tr>
+          <tr data-row-id="LK03" class="matrix-row">
+            <td>LK03 Candidate claims and conflicts</td>
+            <td class="mark-designed">D</td>
+            <td class="mark-designed">D</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-elsewhere">↑</td>
+            <td class="mark-no">✗</td>
+          </tr>
+          <tr data-row-id="LK04" class="matrix-row">
+            <td>LK04 Steward decisions, supersession, effective time</td>
+            <td class="mark-designed">D</td>
+            <td class="mark-designed">D</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-elsewhere">↑</td>
+            <td class="mark-no">✗</td>
+          </tr>
+        </tbody>
+        <tbody class="matrix-group" data-group="Binding">
+          <tr data-row-id="LK05" class="matrix-row">
+            <td>LK05 Approved-selection snapshot</td>
+            <td class="mark-designed">D</td>
+            <td class="mark-designed">D</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-elsewhere">↑</td>
+            <td class="mark-no">✗</td>
+          </tr>
+          <tr data-row-id="LK07" class="matrix-row">
+            <td>LK07 Publication pin</td>
+            <td class="mark-designed">D</td>
+            <td class="mark-designed">D</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-elsewhere">↑</td>
+            <td class="mark-no">✗</td>
+          </tr>
+        </tbody>
+        <tbody class="matrix-group" data-group="Retrieval">
+          <tr data-row-id="LK06" class="matrix-row">
+            <td>LK06 Authority and access gates before ranking</td>
+            <td class="mark-designed">D</td>
+            <td class="mark-designed">D</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-designed">D</td>
+            <td class="mark-no">✗</td>
+          </tr>
+        </tbody>
+        <tbody class="matrix-group" data-group="Lineage">
+          <tr data-row-id="LK08" class="matrix-row">
+            <td>LK08 Typed version-level dependency ledger</td>
+            <td class="mark-designed">D</td>
+            <td class="mark-designed">D</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-designed">D</td>
+            <td class="mark-no">✗</td>
+          </tr>
+          <tr data-row-id="LK09" class="matrix-row">
+            <td>LK09 Rebuildable projections</td>
+            <td class="mark-designed">D</td>
+            <td class="mark-designed">D</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-elsewhere">↑</td>
+            <td class="mark-no">✗</td>
+          </tr>
+          <tr data-row-id="LK10" class="matrix-row">
+            <td>LK10 Explained ripple review</td>
+            <td class="mark-designed">D</td>
+            <td class="mark-designed">D</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-no">✗</td>
+            <td class="mark-elsewhere">↑</td>
+            <td class="mark-no">✗</td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <template data-for="LK00">
+        <div>
+          <p><strong>Where this came from:</strong> BRO-50</p>
+          <p><strong>Analog elsewhere:</strong> CanonFlow ADR-015 <a data-citation="canon-flow" data-repo="canon-flow" data-path="docs/adr/0015-canon-semantics.md">citation</a></p>
+          <p><strong>Blocked by:</strong> BRO-5</p>
+        </div>
+      </template>
+      <template data-for="LK01">
+        <div>
+          <p><strong>Where this came from:</strong> BRO-5</p>
+          <p><strong>Analog elsewhere:</strong> None</p>
+          <p><strong>Blocked by:</strong> BRO-5</p>
+        </div>
+      </template>
+      <template data-for="LK02">
+        <div>
+          <p><strong>Where this came from:</strong> BRO-50</p>
+          <p><strong>Analog elsewhere:</strong> PC02, PC03 <a data-citation="pkm-canon" data-repo="pkm-canon" data-path="docs/architecture/component-map.md">citation</a></p>
+          <p><strong>Blocked by:</strong> BRO-5</p>
+        </div>
+      </template>
+      <template data-for="LK03">
+        <div>
+          <p><strong>Where this came from:</strong> BRO-50</p>
+          <p><strong>Analog elsewhere:</strong> PC04, CF02</p>
+          <p><strong>Blocked by:</strong> BRO-5</p>
+        </div>
+      </template>
+      <template data-for="LK04">
+        <div>
+          <p><strong>Where this came from:</strong> BRO-50</p>
+          <p><strong>Analog elsewhere:</strong> PC05, CF03</p>
+          <p><strong>Blocked by:</strong> BRO-5</p>
+        </div>
+      </template>
+      <template data-for="LK05">
+        <div>
+          <p><strong>Where this came from:</strong> BRO-51</p>
+          <p><strong>Analog elsewhere:</strong> CF04, PC07</p>
+          <p><strong>Blocked by:</strong> BRO-5</p>
+        </div>
+      </template>
+      <template data-for="LK06">
+        <div>
+          <p><strong>Where this came from:</strong> BRO-52</p>
+          <p><strong>Analog elsewhere:</strong> CF09</p>
+          <p><strong>Blocked by:</strong> BRO-5</p>
+        </div>
+      </template>
+      <template data-for="LK07">
+        <div>
+          <p><strong>Where this came from:</strong> BRO-51</p>
+          <p><strong>Analog elsewhere:</strong> CF05</p>
+          <p><strong>Blocked by:</strong> BRO-5</p>
+        </div>
+      </template>
+      <template data-for="LK08">
+        <div>
+          <p><strong>Where this came from:</strong> BRO-53</p>
+          <p><strong>Analog elsewhere:</strong> CF10</p>
+          <p><strong>Blocked by:</strong> BRO-5</p>
+        </div>
+      </template>
+      <template data-for="LK09">
+        <div>
+          <p><strong>Where this came from:</strong> BRO-53</p>
+          <p><strong>Analog elsewhere:</strong> PC06</p>
+          <p><strong>Blocked by:</strong> BRO-5</p>
+        </div>
+      </template>
+      <template data-for="LK10">
+        <div>
+          <p><strong>Where this came from:</strong> BRO-52</p>
+          <p><strong>Analog elsewhere:</strong> CF06</p>
+          <p><strong>Blocked by:</strong> BRO-5</p>
+        </div>
+      </template>
+    </section>
+
+    <section id="build-order" class="prose numbered-section">
+      <h2>Build Order</h2>
+      <script type="application/json" data-guide="graph">
+      {
+        "lanes": [{ "id": "LK", "label": "Living Knowledge" }],
+        "nodes": [
+          { "id": "BRO-5", "label": "BRO-5 Gate", "lane": "LK", "status": "proposed" },
+          { "id": "LK02", "label": "LK02 Source", "lane": "LK", "status": "proposed" },
+          { "id": "LK03", "label": "LK03 Claims", "lane": "LK", "status": "proposed" },
+          { "id": "LK04", "label": "LK04 Steward", "lane": "LK", "status": "proposed" },
+          { "id": "LK05", "label": "LK05 Snapshot", "lane": "LK", "status": "proposed" },
+          { "id": "LK06", "label": "LK06 Access", "lane": "LK", "status": "proposed" },
+          { "id": "LK07", "label": "LK07 Pin", "lane": "LK", "status": "proposed" },
+          { "id": "LK08", "label": "LK08 Ledger", "lane": "LK", "status": "proposed" },
+          { "id": "LK09", "label": "LK09 Projections", "lane": "LK", "status": "proposed" },
+          { "id": "LK10", "label": "LK10 Ripple", "lane": "LK", "status": "proposed" }
+        ],
+        "edges": [
+          { "from": "BRO-5", "to": "LK02" },
+          { "from": "LK02", "to": "LK03" },
+          { "from": "LK03", "to": "LK04" },
+          { "from": "LK04", "to": "LK05" },
+          { "from": "LK05", "to": "LK06" },
+          { "from": "LK06", "to": "LK07" },
+          { "from": "LK02", "to": "LK08" },
+          { "from": "LK04", "to": "LK08" },
+          { "from": "LK07", "to": "LK08" },
+          { "from": "LK08", "to": "LK09" },
+          { "from": "LK08", "to": "LK10" }
+        ]
+      }
+      </script>
+    </section>
+
+    <section id="questions" class="prose numbered-section">
+      <h2>Questions for BRO-5</h2>
+      <div class="table-scroll">
+        <table class="guides-table">
+          <thead>
+            <tr>
+              <th>Question</th>
+              <th>Unblocks</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Pilot domain</td>
+              <td>LK01, LK02</td>
+            </tr>
+            <tr>
+              <td>Permitted sources</td>
+              <td>LK02, LK03</td>
+            </tr>
+            <tr>
+              <td>Stewards</td>
+              <td>LK04</td>
+            </tr>
+            <tr>
+              <td>Audience</td>
+              <td>LK06</td>
+            </tr>
+            <tr>
+              <td>Acceptance cases</td>
+              <td>LK09, LK10</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="layer-picture" class="prose numbered-section">
+      <h2>Layer Picture</h2>
+      <div class="layer-stack">
+        <div class="layer-band style-designed">
+          <div class="layer-title"><span>Candidate</span> <span class="badge" data-axis="impl" data-val="proposed">Proposed</span></div>
+          <div class="walkthrough-row tint-changed">
+            <div class="walkthrough-field">state</div>
+            <div class="walkthrough-val">pending</div>
+          </div>
+        </div>
+        <div class="layer-band style-designed">
+          <div class="layer-title"><span>Approved</span> <span class="badge" data-axis="impl" data-val="proposed">Proposed</span></div>
+          <div class="walkthrough-row tint-changed">
+            <div class="walkthrough-field">state</div>
+            <div class="walkthrough-val">approved</div>
+          </div>
+        </div>
+        <div class="layer-band style-designed">
+          <div class="layer-title"><span>Snapshot</span> <span class="badge" data-axis="impl" data-val="proposed">Proposed</span></div>
+          <div class="walkthrough-row tint-stale">
+            <div class="walkthrough-field">state</div>
+            <div class="walkthrough-val">immutable</div>
+          </div>
+        </div>
+      </div>
+      
+      <script type="application/json" data-guide="entities">
+      {
+        "boxes": [
+          { "id": "cand", "title": "Candidate", "style": "dashed", "row": 0, "col": 0, "fields": [ { "name": "state: pending", "mark": "plain" } ] },
+          { "id": "appr", "title": "Approved", "style": "dashed", "row": 1, "col": 0, "fields": [ { "name": "state: approved", "mark": "plain" } ] },
+          { "id": "snap", "title": "Snapshot", "style": "dashed", "row": 2, "col": 0, "fields": [ { "name": "state: immutable", "mark": "stale" } ] }
+        ],
+        "edges": [
+          { "from": "cand", "to": "appr", "style": "solid", "label": "review" },
+          { "from": "appr", "to": "snap", "style": "solid", "label": "pin" }
+        ]
+      }
+      </script>
+    </section>
+  </main>
+</div>
 </body>
 </html>

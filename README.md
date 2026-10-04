@@ -17,6 +17,6 @@ state from future components and their next work. Run
 and supported checks. CanonFlow owns the master; local Git files provide offline access.
 
 For a one-page view of what is only designed, open the
-[design-gap orientation page](docs/orientation/design-gap.html). For how
-canon flows across systems, see `canon-flow/docs/orientation/system-flows.html`
+[design-gap orientation page](docs/html-guides/design-gap.html). For how
+canon flows across systems, see `canon-flow/docs/html-guides/system-map.html`
 in the canon-flow repository.

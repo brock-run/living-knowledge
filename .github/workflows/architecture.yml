@@ -14,3 +14,5 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Check diagrams and links
         run: node scripts/check-architecture.mjs
+      - name: Check reviewer standards snapshot
+        run: node scripts/check-reviewer-standards.mjs

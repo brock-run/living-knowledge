@@ -174,5 +174,27 @@
   <p data-shell="closing">
     Sources not checked: the code graph, because this repository has no application code. Other repositories were not checked either.
   </p>
+
+  <script>
+    (function () {
+      function wireRepoCitations() {
+        document.querySelectorAll('a[data-citation="repo"]').forEach(function (anchor) {
+          var path = anchor.getAttribute("data-path");
+          if (!path || anchor.getAttribute("href")) {
+            return;
+          }
+          var line = anchor.getAttribute("data-line");
+          var href = "../../" + path;
+          if (line) {
+            href += "#L" + line;
+          }
+          anchor.setAttribute("href", href);
+          anchor.setAttribute("title", path + (line ? ":" + line : ""));
+        });
+      }
+
+      wireRepoCitations();
+    })();
+  </script>
 </body>
 </html>

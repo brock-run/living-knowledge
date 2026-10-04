@@ -31,7 +31,12 @@ running application. BRO-5 still owns the bounded pilot and accountable owners.
 
 ## Verification for the changed scope
 
-- `node scripts/check-architecture.mjs`: diagram IDs and local links.
+- `node scripts/check-architecture.mjs`: diagram IDs and file links in the three
+  files under `docs/architecture/` only; it does not check other docs or anchors.
+- For other changed Markdown, resolve relative file links from the containing
+  file and confirm each target exists. Inspect heading anchors in the target
+  document and verify external references separately. Report this link/content
+  review separately from the architecture checker.
 - Inspect changed design/contract references, product boundaries and explicit
   implementation status. Cite source and branch/revision for material claims.
 - No application test/lint target exists yet. Disclose that scope rather than

@@ -6,6 +6,7 @@
 <title>Design Gap - Living Knowledge</title>
 <meta name="guides:repo-dirs" content="canon-flow=canon-flow;pkm-canon=pkm-rosetta;living-knowledge=living-knowledge;brocks-helpers=brocks-helpers">
 <!-- guides:runtime begin v2.x -->
+<meta name="guides:repo-dirs" content="canon-flow=canon-flow;pkm-canon=pkm-rosetta;living-knowledge=living-knowledge;brocks-helpers=brocks-helpers">
 <style>
 /* brocks-helpers/assets/html-guides/tokens.css */
 :root {
@@ -974,6 +975,65 @@ table.guides-matrix tbody.matrix-group::before {
 .walkthrough-row.tint-changed { background: color-mix(in srgb, var(--st-implemented) 10%, transparent); }
 .walkthrough-row.tint-stale { background: color-mix(in srgb, var(--st-partial) 10%, transparent); }
 
+/* C16: Side-by-side */
+.side-by-side {
+  display: flex;
+  gap: 2rem;
+  overflow-x: auto;
+}
+.sbs-pane {
+  flex: 1;
+  min-width: 300px;
+}
+.sbs-header {
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+.sbs-summary {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin-bottom: 1rem;
+  background: var(--surface);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  border: 1px solid var(--rule);
+}
+.diff-new { border-color: var(--st-implemented) !important; border-width: 2px !important; }
+.diff-changed { border-color: var(--st-partial) !important; border-width: 2px !important; }
+.diff-removed { border-color: var(--st-absent) !important; border-width: 2px !important; opacity: 0.6; }
+.diff-edge-new path { stroke: var(--st-implemented) !important; stroke-dasharray: 4 4; }
+.sbs-tabs {
+  display: none;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.sbs-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-size: 1rem;
+  color: var(--ink-soft);
+}
+.sbs-tab.active {
+  border-bottom-color: var(--ink);
+  color: var(--ink);
+  font-weight: bold;
+}
+@media (max-width: 900px) {
+  .side-by-side {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .sbs-pane { display: none; }
+  .sbs-pane.active { display: block; }
+  .sbs-tabs { display: flex; }
+}
+
 </style>
 <script>
 // brocks-helpers/assets/html-guides/guides.js
@@ -982,13 +1042,14 @@ document.addEventListener('DOMContentLoaded', () => {
   initSourcesObserver();
   initCopyButtons();
   initCitations();
-  initPhaseCopyButtons();
-  initSequenceDiagrams();
-  initStateDiagrams();
-  initGraphDiagrams();
-  initCapabilityMatrices();
-  initEntityDiagrams();
-  initMasterDetail();
+  if (typeof initPhaseCopyButtons === 'function') initPhaseCopyButtons();
+  if (typeof initSequenceDiagrams === 'function') initSequenceDiagrams();
+  if (typeof initStateDiagrams === 'function') initStateDiagrams();
+  if (typeof initGraphDiagrams === 'function') initGraphDiagrams();
+  if (typeof initCapabilityMatrices === 'function') initCapabilityMatrices();
+  if (typeof initEntityDiagrams === 'function') initEntityDiagrams();
+  if (typeof initMasterDetail === 'function') initMasterDetail();
+  if (typeof initSideBySide === 'function') initSideBySide();
 });
 
 // C3: Sources Observer (right rail)
@@ -1064,6 +1125,7 @@ function initCitations() {
     <div class="popover-actions">
       <a class="action-primary" href="#"></a>
       <hr style="margin:0.25rem 0; border:none; border-top:1px solid var(--rule);">
+      <button class="action-start-viewer">Start viewer (copy command)</button>
       <a class="action-cursor" href="#">Open in Cursor</a>
       <a class="action-github" href="#" target="_blank" rel="noopener noreferrer">GitHub</a>
       <button class="action-copy-path">Copy Path</button>
@@ -1098,6 +1160,7 @@ function initCitations() {
       const viewCursor = popover.querySelector('.action-cursor');
       const viewGithub = popover.querySelector('.action-github');
       const copyPath = popover.querySelector('.action-copy-path');
+      const startViewer = popover.querySelector('.action-start-viewer');
 
       let cursorAbsPath = path;
       const match = window.location.pathname.match(/^(.*)\/([^/]+)\/docs\/html-guides\//);
@@ -1123,6 +1186,24 @@ function initCitations() {
       copyPath.onclick = (ce) => {
         ce.stopPropagation();
         navigator.clipboard.writeText(path);
+      };
+      
+      startViewer.onclick = (ce) => {
+        ce.stopPropagation();
+        // The viewer server lives in brocks-helpers (scripts.html_guides).
+        // Build a runnable command that cds into that checkout first, so the
+        // copied command works from any repo a guide is opened from.
+        let serveCmd = "python -m scripts.html_guides.cli serve";
+        const pathMatch = window.location.pathname.match(/^(.*)\/([^/]+)\/docs\/html-guides\//);
+        if (pathMatch) {
+          const wsRoot = pathMatch[1];
+          const bhDir = repoDirs["brocks-helpers"] || "brocks-helpers";
+          serveCmd = `cd ${wsRoot}/${bhDir} && python -m scripts.html_guides.cli serve`;
+        }
+        navigator.clipboard.writeText(serveCmd);
+        const original = startViewer.textContent;
+        startViewer.textContent = "Copied command!";
+        setTimeout(() => startViewer.textContent = original, 2000);
       };
 
       const rect = citation.getBoundingClientRect();
@@ -1398,37 +1479,29 @@ function initGraphDiagrams() {
       });
       
       (data.nodes || []).forEach(node => {
-        const btn = document.createElement('button');
-        btn.className = `graph-node status-${node.status || 'default'}`;
-        btn.innerHTML = `<span class="node-id">${node.id}</span> <span class="node-label">${node.label}</span>`;
-        btn.setAttribute('data-id', node.id);
-        if (document.querySelector(`template[data-for="${node.id}"]`)) {
-          btn.addEventListener('click', () => {
+        const hasDetail = !!document.querySelector(`template[data-for="${node.id}"]`);
+        // Nodes without a detail template are non-interactive content (div),
+        // not focusable buttons with no action — avoids dead ends for
+        // keyboard readers. Only nodes with a detail template become buttons.
+        const el = document.createElement(hasDetail ? 'button' : 'div');
+        el.className = `graph-node status-${node.status || 'default'}`;
+        el.innerHTML = `<span class="node-id">${node.id}</span> <span class="node-label">${node.label}</span>`;
+        el.setAttribute('data-id', node.id);
+        if (!hasDetail) {
+          el.setAttribute('role', 'img');
+          el.setAttribute('aria-label', `${node.id} ${node.label}`);
+          el.style.cursor = 'default';
+        } else {
+          el.addEventListener('click', () => {
             showInspector(node.id, node, container);
           });
-        } else {
-          btn.style.cursor = 'default';
         }
-        
+
         const targetLane = lanesMap[node.lane] || lanesMap[Object.keys(lanesMap)[0]];
-        if (targetLane) targetLane.appendChild(btn);
+        if (targetLane) targetLane.appendChild(el);
       });
       
       container.appendChild(graphWrapper);
-      
-      if (data.edges && data.edges.length > 0) {
-        container.style.flexDirection = 'column';
-        const edgesDiv = document.createElement('div');
-        edgesDiv.className = 'graph-edges-list';
-        edgesDiv.style.marginTop = '1rem';
-        edgesDiv.style.fontFamily = 'var(--mono)';
-        edgesDiv.style.fontSize = '0.85rem';
-        edgesDiv.innerHTML = '<strong>Relationships:</strong><ul>' + 
-          data.edges.map(e => `<li>${e.from} &rarr; ${e.to}${e.kind && e.kind.replace(/diff-[a-zA-Z0-9-]+/g, '').trim() ? ` (${e.kind.replace(/diff-[a-zA-Z0-9-]+/g, '').trim()})` : ''}</li>`).join('') + 
-          '</ul>';
-        container.appendChild(edgesDiv);
-      }
-      
       script.parentNode.insertBefore(container, script.nextSibling);
     } catch (e) {
       console.error(e);
@@ -1555,12 +1628,12 @@ function initEntityDiagrams() {
       const positions = {};
 
       data.boxes.forEach((box, i) => {
-        const col = box.col ?? (i % 3);
-        const row = box.row ?? Math.floor(i / 3);
+        const col = box.col || (i % 3);
+        const row = box.row || Math.floor(i / 3);
         const x = startX + col * (boxWidth + gapX);
         const y = startY + row * (boxHeight + gapY);
         
-        positions[box.id] = { row, x: x + boxWidth/2, y: y + boxHeight/2, left: x, right: x + boxWidth, top: y, bottom: y + boxHeight };
+        positions[box.id] = { x: x + boxWidth/2, y: y + boxHeight/2, left: x, right: x + boxWidth, top: y, bottom: y + boxHeight };
         
         maxX = Math.max(maxX, x + boxWidth);
         maxY = Math.max(maxY, y + boxHeight);
@@ -1646,10 +1719,12 @@ function initEntityDiagrams() {
       
       svg.setAttribute("viewBox", `0 0 ${maxX + 40} ${maxY + 40}`);
       container.appendChild(svg);
-      
-      // Text equivalent below
+
+      // Text equivalent for screen readers: concise description of the
+      // diagram's boxes and their relationships. The serialized JSON was
+      // removed because it announced a lengthy, redundant payload; the
+      // Layer Picture section already has a readable walkthrough.
       const fallback = document.createElement('div');
-      // Visually hide instead of display:none for screen readers
       fallback.style.position = 'absolute';
       fallback.style.width = '1px';
       fallback.style.height = '1px';
@@ -1659,13 +1734,38 @@ function initEntityDiagrams() {
       fallback.style.clip = 'rect(0, 0, 0, 0)';
       fallback.style.whiteSpace = 'nowrap';
       fallback.style.border = '0';
-      fallback.textContent = JSON.stringify(data);
+      const boxList = data.boxes.map(b => b.title || b.id).join(', ');
+      const edgeList = data.edges.map(e => `${e.from} to ${e.to}${e.label ? ' (' + e.label + ')' : ''}`).join('; ');
+      fallback.textContent = `Entity diagram. Boxes: ${boxList}. Relationships: ${edgeList}.`;
       container.appendChild(fallback);
       
       script.parentNode.insertBefore(container, script.nextSibling);
     } catch (e) {
       console.error("Failed to parse entity diagram", e);
     }
+  });
+}
+
+// C16: Side-by-side tab switching (narrow screens)
+function initSideBySide() {
+  document.querySelectorAll('[data-sbs].sbs-tabs').forEach(tabs => {
+    // The tabs and the .side-by-side share a parent in the gallery fixture.
+    const root = tabs.parentElement;
+    const panes = root ? root.querySelectorAll('.side-by-side .sbs-pane') : [];
+    tabs.querySelectorAll('.sbs-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const target = tab.getAttribute('data-sbs-pane');
+        tabs.querySelectorAll('.sbs-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        panes.forEach(pane => {
+          if (pane.getAttribute('data-sbs-pane') === target) {
+            pane.classList.add('active');
+          } else {
+            pane.classList.remove('active');
+          }
+        });
+      });
+    });
   });
 }
 
@@ -1698,7 +1798,7 @@ function initEntityDiagrams() {
       <h2>Reading Guide</h2>
       <aside class="callout" data-kind="note">
         <div class="callout-label">Note</div>
-        <p>This design gap outlines the readiness of each component (LK00–LK10). Living Knowledge has no application code yet. Marks indicate whether decisions, contracts, and code exist locally or in sibling repos.</p>
+        <p>This design gap outlines the readiness of each component (LK00–LK10). The LK IDs and their statuses come from the Living Knowledge <a data-citation="repo" data-repo="living-knowledge" data-path="docs/architecture/component-map.md" data-line="5">component map</a>; analog claims are cited to the corresponding row in the sibling product's map. Living Knowledge has no application code yet. Marks indicate whether decisions, contracts, and code exist locally or in sibling repos.</p>
       </aside>
     </section>
 
@@ -1706,7 +1806,7 @@ function initEntityDiagrams() {
       <h2>Verdict</h2>
       <aside class="callout" data-kind="verdict">
         <div class="callout-label">Verdict</div>
-        <p>0 of 11 components are built; 1 decision (BRO-5) gates all of them; 7 of 11 have a running analog in a sibling product.</p>
+        <p>0 of 11 components are built; 1 decision (BRO-5) gates all of them; 7 of 11 have a running analog in a sibling product (LK02, LK03, LK04, LK05, LK07, LK09, LK10 — each cited to its Implemented component-map row; the other four analogs are Proposed or absent).</p>
       </aside>
     </section>
 
@@ -1842,77 +1942,77 @@ function initEntityDiagrams() {
       <template data-for="LK00">
         <div>
           <p><strong>Where this came from:</strong> BRO-50</p>
-          <p><strong>Analog elsewhere:</strong> CanonFlow ADR-015 <a data-citation="canon-flow" data-repo="canon-flow" data-path="docs/adr/0015-canon-semantics.md">citation</a></p>
+          <p><strong>Analog elsewhere:</strong> CanonFlow ADR-015 and PKM Canon ADR-0020 (both Proposed, not running) — <a data-citation="repo" data-repo="canon-flow" data-path="docs/adr/adr015-canon-semantics-and-portable-contracts.md">ADR-015</a>, <a data-citation="repo" data-repo="pkm-canon" data-path="docs/adr/0020-canon-semantics-and-portable-contracts.md">ADR-0020</a></p>
           <p><strong>Blocked by:</strong> BRO-5</p>
         </div>
       </template>
       <template data-for="LK01">
         <div>
           <p><strong>Where this came from:</strong> BRO-5</p>
-          <p><strong>Analog elsewhere:</strong> None</p>
+          <p><strong>Analog elsewhere:</strong> None — pure decision gap, see the LK01 row <a data-citation="repo" data-repo="living-knowledge" data-path="docs/architecture/component-map.md" data-line="8">component map</a></p>
           <p><strong>Blocked by:</strong> BRO-5</p>
         </div>
       </template>
       <template data-for="LK02">
         <div>
           <p><strong>Where this came from:</strong> BRO-50</p>
-          <p><strong>Analog elsewhere:</strong> PC02, PC03 <a data-citation="pkm-canon" data-repo="pkm-canon" data-path="docs/architecture/component-map.md">citation</a></p>
+          <p><strong>Analog elsewhere (running):</strong> PC02 and PC03, both Implemented in PKM Canon — <a data-citation="repo" data-repo="pkm-canon" data-path="docs/architecture/component-map.md" data-line="9">PC02</a>, <a data-citation="repo" data-repo="pkm-canon" data-path="docs/architecture/component-map.md" data-line="10">PC03</a></p>
           <p><strong>Blocked by:</strong> BRO-5</p>
         </div>
       </template>
       <template data-for="LK03">
         <div>
           <p><strong>Where this came from:</strong> BRO-50</p>
-          <p><strong>Analog elsewhere:</strong> PC04, CF02</p>
+          <p><strong>Analog elsewhere (running):</strong> PC04 and CF02, both Implemented — <a data-citation="repo" data-repo="pkm-canon" data-path="docs/architecture/component-map.md" data-line="11">PC04</a>, <a data-citation="repo" data-repo="canon-flow" data-path="docs/architecture/component-map.md" data-line="9">CF02</a></p>
           <p><strong>Blocked by:</strong> BRO-5</p>
         </div>
       </template>
       <template data-for="LK04">
         <div>
           <p><strong>Where this came from:</strong> BRO-50</p>
-          <p><strong>Analog elsewhere:</strong> PC05, CF03</p>
+          <p><strong>Analog elsewhere (running):</strong> PC05 and CF03, both Implemented — <a data-citation="repo" data-repo="pkm-canon" data-path="docs/architecture/component-map.md" data-line="12">PC05</a>, <a data-citation="repo" data-repo="canon-flow" data-path="docs/architecture/component-map.md" data-line="10">CF03</a></p>
           <p><strong>Blocked by:</strong> BRO-5</p>
         </div>
       </template>
       <template data-for="LK05">
         <div>
           <p><strong>Where this came from:</strong> BRO-51</p>
-          <p><strong>Analog elsewhere:</strong> CF04, PC07</p>
+          <p><strong>Analog elsewhere (running):</strong> CF04 and PC07, both Implemented — <a data-citation="repo" data-repo="canon-flow" data-path="docs/architecture/component-map.md" data-line="11">CF04</a>, <a data-citation="repo" data-repo="pkm-canon" data-path="docs/architecture/component-map.md" data-line="14">PC07</a></p>
           <p><strong>Blocked by:</strong> BRO-5</p>
         </div>
       </template>
       <template data-for="LK06">
         <div>
           <p><strong>Where this came from:</strong> BRO-52</p>
-          <p><strong>Analog elsewhere:</strong> CF09</p>
+          <p><strong>Analog elsewhere:</strong> CF09, Proposed (not running) — <a data-citation="repo" data-repo="canon-flow" data-path="docs/architecture/component-map.md" data-line="16">CF09</a></p>
           <p><strong>Blocked by:</strong> BRO-5</p>
         </div>
       </template>
       <template data-for="LK07">
         <div>
           <p><strong>Where this came from:</strong> BRO-51</p>
-          <p><strong>Analog elsewhere:</strong> CF05</p>
+          <p><strong>Analog elsewhere (running):</strong> CF05, Implemented — <a data-citation="repo" data-repo="canon-flow" data-path="docs/architecture/component-map.md" data-line="12">CF05</a></p>
           <p><strong>Blocked by:</strong> BRO-5</p>
         </div>
       </template>
       <template data-for="LK08">
         <div>
           <p><strong>Where this came from:</strong> BRO-53</p>
-          <p><strong>Analog elsewhere:</strong> CF10</p>
+          <p><strong>Analog elsewhere:</strong> CF10, Proposed (not running) — <a data-citation="repo" data-repo="canon-flow" data-path="docs/architecture/component-map.md" data-line="17">CF10</a></p>
           <p><strong>Blocked by:</strong> BRO-5</p>
         </div>
       </template>
       <template data-for="LK09">
         <div>
           <p><strong>Where this came from:</strong> BRO-53</p>
-          <p><strong>Analog elsewhere:</strong> PC06</p>
+          <p><strong>Analog elsewhere (running):</strong> PC06, Implemented — <a data-citation="repo" data-repo="pkm-canon" data-path="docs/architecture/component-map.md" data-line="13">PC06</a></p>
           <p><strong>Blocked by:</strong> BRO-5</p>
         </div>
       </template>
       <template data-for="LK10">
         <div>
           <p><strong>Where this came from:</strong> BRO-52</p>
-          <p><strong>Analog elsewhere:</strong> CF06</p>
+          <p><strong>Analog elsewhere (running):</strong> CF06, Implemented — <a data-citation="repo" data-repo="canon-flow" data-path="docs/architecture/component-map.md" data-line="13">CF06</a></p>
           <p><strong>Blocked by:</strong> BRO-5</p>
         </div>
       </template>

@@ -6,6 +6,7 @@
 <title>Current vs Target - living-knowledge</title>
 <meta name="guides:repo-dirs" content="canon-flow=canon-flow;pkm-canon=pkm-rosetta;living-knowledge=living-knowledge;brocks-helpers=brocks-helpers">
 <!-- guides:runtime begin v2.x -->
+<meta name="guides:repo-dirs" content="canon-flow=canon-flow;pkm-canon=pkm-rosetta;living-knowledge=living-knowledge;brocks-helpers=brocks-helpers">
 <style>
 /* brocks-helpers/assets/html-guides/tokens.css */
 :root {
@@ -1028,8 +1029,8 @@ table.guides-matrix tbody.matrix-group::before {
     flex-direction: column;
     gap: 1rem;
   }
-  /* .sbs-pane { display: none; } (removed to stack vertically on mobile) */
-  /* .sbs-pane.active { display: block; } */
+  .sbs-pane { display: none; }
+  .sbs-pane.active { display: block; }
   .sbs-tabs { display: flex; }
 }
 
@@ -1041,13 +1042,14 @@ document.addEventListener('DOMContentLoaded', () => {
   initSourcesObserver();
   initCopyButtons();
   initCitations();
-  initPhaseCopyButtons();
-  initSequenceDiagrams();
-  initStateDiagrams();
-  initGraphDiagrams();
-  initCapabilityMatrices();
-  initEntityDiagrams();
-  initMasterDetail();
+  if (typeof initPhaseCopyButtons === 'function') initPhaseCopyButtons();
+  if (typeof initSequenceDiagrams === 'function') initSequenceDiagrams();
+  if (typeof initStateDiagrams === 'function') initStateDiagrams();
+  if (typeof initGraphDiagrams === 'function') initGraphDiagrams();
+  if (typeof initCapabilityMatrices === 'function') initCapabilityMatrices();
+  if (typeof initEntityDiagrams === 'function') initEntityDiagrams();
+  if (typeof initMasterDetail === 'function') initMasterDetail();
+  if (typeof initSideBySide === 'function') initSideBySide();
 });
 
 // C3: Sources Observer (right rail)
@@ -1188,7 +1190,17 @@ function initCitations() {
       
       startViewer.onclick = (ce) => {
         ce.stopPropagation();
-        navigator.clipboard.writeText("make guides-serve");
+        // The viewer server lives in brocks-helpers (scripts.html_guides).
+        // Build a runnable command that cds into that checkout first, so the
+        // copied command works from any repo a guide is opened from.
+        let serveCmd = "python -m scripts.html_guides.cli serve";
+        const pathMatch = window.location.pathname.match(/^(.*)\/([^/]+)\/docs\/html-guides\//);
+        if (pathMatch) {
+          const wsRoot = pathMatch[1];
+          const bhDir = repoDirs["brocks-helpers"] || "brocks-helpers";
+          serveCmd = `cd ${wsRoot}/${bhDir} && python -m scripts.html_guides.cli serve`;
+        }
+        navigator.clipboard.writeText(serveCmd);
         const original = startViewer.textContent;
         startViewer.textContent = "Copied command!";
         setTimeout(() => startViewer.textContent = original, 2000);
@@ -1467,37 +1479,29 @@ function initGraphDiagrams() {
       });
       
       (data.nodes || []).forEach(node => {
-        const btn = document.createElement('button');
-        btn.className = `graph-node status-${node.status || 'default'}`;
-        btn.innerHTML = `<span class="node-id">${node.id}</span> <span class="node-label">${node.label}</span>`;
-        btn.setAttribute('data-id', node.id);
-        if (document.querySelector(`template[data-for="${node.id}"]`)) {
-          btn.addEventListener('click', () => {
+        const hasDetail = !!document.querySelector(`template[data-for="${node.id}"]`);
+        // Nodes without a detail template are non-interactive content (div),
+        // not focusable buttons with no action — avoids dead ends for
+        // keyboard readers. Only nodes with a detail template become buttons.
+        const el = document.createElement(hasDetail ? 'button' : 'div');
+        el.className = `graph-node status-${node.status || 'default'}`;
+        el.innerHTML = `<span class="node-id">${node.id}</span> <span class="node-label">${node.label}</span>`;
+        el.setAttribute('data-id', node.id);
+        if (!hasDetail) {
+          el.setAttribute('role', 'img');
+          el.setAttribute('aria-label', `${node.id} ${node.label}`);
+          el.style.cursor = 'default';
+        } else {
+          el.addEventListener('click', () => {
             showInspector(node.id, node, container);
           });
-        } else {
-          btn.style.cursor = 'default';
         }
-        
+
         const targetLane = lanesMap[node.lane] || lanesMap[Object.keys(lanesMap)[0]];
-        if (targetLane) targetLane.appendChild(btn);
+        if (targetLane) targetLane.appendChild(el);
       });
       
       container.appendChild(graphWrapper);
-      
-      if (data.edges && data.edges.length > 0) {
-        container.style.flexDirection = 'column';
-        const edgesDiv = document.createElement('div');
-        edgesDiv.className = 'graph-edges-list';
-        edgesDiv.style.marginTop = '1rem';
-        edgesDiv.style.fontFamily = 'var(--mono)';
-        edgesDiv.style.fontSize = '0.85rem';
-        edgesDiv.innerHTML = '<strong>Relationships:</strong><ul>' + 
-          data.edges.map(e => `<li>${e.from} &rarr; ${e.to}${e.kind && e.kind.replace(/diff-[a-zA-Z0-9-]+/g, '').trim() ? ` (${e.kind.replace(/diff-[a-zA-Z0-9-]+/g, '').trim()})` : ''}</li>`).join('') + 
-          '</ul>';
-        container.appendChild(edgesDiv);
-      }
-      
       script.parentNode.insertBefore(container, script.nextSibling);
     } catch (e) {
       console.error(e);
@@ -1624,12 +1628,12 @@ function initEntityDiagrams() {
       const positions = {};
 
       data.boxes.forEach((box, i) => {
-        const col = box.col ?? (i % 3);
-        const row = box.row ?? Math.floor(i / 3);
+        const col = box.col || (i % 3);
+        const row = box.row || Math.floor(i / 3);
         const x = startX + col * (boxWidth + gapX);
         const y = startY + row * (boxHeight + gapY);
         
-        positions[box.id] = { row, x: x + boxWidth/2, y: y + boxHeight/2, left: x, right: x + boxWidth, top: y, bottom: y + boxHeight };
+        positions[box.id] = { x: x + boxWidth/2, y: y + boxHeight/2, left: x, right: x + boxWidth, top: y, bottom: y + boxHeight };
         
         maxX = Math.max(maxX, x + boxWidth);
         maxY = Math.max(maxY, y + boxHeight);
@@ -1715,10 +1719,12 @@ function initEntityDiagrams() {
       
       svg.setAttribute("viewBox", `0 0 ${maxX + 40} ${maxY + 40}`);
       container.appendChild(svg);
-      
-      // Text equivalent below
+
+      // Text equivalent for screen readers: concise description of the
+      // diagram's boxes and their relationships. The serialized JSON was
+      // removed because it announced a lengthy, redundant payload; the
+      // Layer Picture section already has a readable walkthrough.
       const fallback = document.createElement('div');
-      // Visually hide instead of display:none for screen readers
       fallback.style.position = 'absolute';
       fallback.style.width = '1px';
       fallback.style.height = '1px';
@@ -1728,13 +1734,38 @@ function initEntityDiagrams() {
       fallback.style.clip = 'rect(0, 0, 0, 0)';
       fallback.style.whiteSpace = 'nowrap';
       fallback.style.border = '0';
-      fallback.textContent = JSON.stringify(data);
+      const boxList = data.boxes.map(b => b.title || b.id).join(', ');
+      const edgeList = data.edges.map(e => `${e.from} to ${e.to}${e.label ? ' (' + e.label + ')' : ''}`).join('; ');
+      fallback.textContent = `Entity diagram. Boxes: ${boxList}. Relationships: ${edgeList}.`;
       container.appendChild(fallback);
       
       script.parentNode.insertBefore(container, script.nextSibling);
     } catch (e) {
       console.error("Failed to parse entity diagram", e);
     }
+  });
+}
+
+// C16: Side-by-side tab switching (narrow screens)
+function initSideBySide() {
+  document.querySelectorAll('[data-sbs].sbs-tabs').forEach(tabs => {
+    // The tabs and the .side-by-side share a parent in the gallery fixture.
+    const root = tabs.parentElement;
+    const panes = root ? root.querySelectorAll('.side-by-side .sbs-pane') : [];
+    tabs.querySelectorAll('.sbs-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const target = tab.getAttribute('data-sbs-pane');
+        tabs.querySelectorAll('.sbs-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        panes.forEach(pane => {
+          if (pane.getAttribute('data-sbs-pane') === target) {
+            pane.classList.add('active');
+          } else {
+            pane.classList.remove('active');
+          }
+        });
+      });
+    });
   });
 }
 

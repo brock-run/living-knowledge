@@ -1196,9 +1196,10 @@ function initCitations() {
         let serveCmd = "python -m scripts.html_guides.cli serve";
         const pathMatch = window.location.pathname.match(/^(.*)\/([^/]+)\/docs\/html-guides\//);
         if (pathMatch) {
-          const wsRoot = pathMatch[1];
+          const wsRoot = decodeURIComponent(pathMatch[1]);
           const bhDir = repoDirs["brocks-helpers"] || "brocks-helpers";
-          serveCmd = `cd ${wsRoot}/${bhDir} && python -m scripts.html_guides.cli serve`;
+          const viewerDir = `${wsRoot}/${bhDir}`.replace(/'/g, "'\\''");
+          serveCmd = `cd '${viewerDir}' && python -m scripts.html_guides.cli serve`;
         }
         navigator.clipboard.writeText(serveCmd);
         const original = startViewer.textContent;

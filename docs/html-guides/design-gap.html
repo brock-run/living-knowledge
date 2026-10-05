@@ -6,7 +6,6 @@
 <title>Design Gap - Living Knowledge</title>
 <meta name="guides:repo-dirs" content="canon-flow=canon-flow;pkm-canon=pkm-rosetta;living-knowledge=living-knowledge;brocks-helpers=brocks-helpers">
 <!-- guides:runtime begin v2.x -->
-<meta name="guides:repo-dirs" content="canon-flow=canon-flow;pkm-canon=pkm-rosetta;living-knowledge=living-knowledge;brocks-helpers=brocks-helpers">
 <style>
 /* brocks-helpers/assets/html-guides/tokens.css */
 :root {
@@ -832,6 +831,15 @@ ul.files-changed li {
 .detail-pane > div.active {
   display: block;
 }
+@media (max-width: 767px) {
+  .master-detail-layout {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .master-list, .detail-pane {
+    width: 100%;
+  }
+}
 /* C8: Capability Matrix */
 .capability-matrix-controls {
   display: flex;
@@ -1029,8 +1037,11 @@ table.guides-matrix tbody.matrix-group::before {
     flex-direction: column;
     gap: 1rem;
   }
-  .sbs-pane { display: none; }
-  .sbs-pane.active { display: block; }
+  /* Tab lists are previous siblings of .side-by-side, not children.
+     Hide the inactive pane only when those tabs exist. Pages without
+     tabs keep both panes visible in the stacked layout. */
+  .sbs-tabs ~ .side-by-side .sbs-pane { display: none; }
+  .sbs-tabs ~ .side-by-side .sbs-pane.active { display: block; }
   .sbs-tabs { display: flex; }
 }
 
@@ -1132,6 +1143,13 @@ function initCitations() {
     </div>
   `;
   document.body.appendChild(popover);
+  let activeCitation = null;
+
+  // Anchors without href are not focusable. Mark them when the page loads so
+  // a later Escape can return focus to the citation that opened the popover.
+  document.querySelectorAll('a[data-citation]:not([href])').forEach(citation => {
+    citation.setAttribute('tabindex', '0');
+  });
 
   const repoMapMeta = document.querySelector('meta[name="guides:repo-dirs"]');
   const repoDirs = {};
@@ -1188,7 +1206,7 @@ function initCitations() {
         navigator.clipboard.writeText(path);
       };
       
-      startViewer.onclick = (ce) => {
+      startViewer.onclick = async (ce) => {
         ce.stopPropagation();
         // The viewer server lives in brocks-helpers (scripts.html_guides).
         // Build a runnable command that cds into that checkout first, so the
@@ -1196,23 +1214,51 @@ function initCitations() {
         let serveCmd = "python -m scripts.html_guides.cli serve";
         const pathMatch = window.location.pathname.match(/^(.*)\/([^/]+)\/docs\/html-guides\//);
         if (pathMatch) {
-          const wsRoot = decodeURIComponent(pathMatch[1]);
+          let wsRoot = pathMatch[1];
           const bhDir = repoDirs["brocks-helpers"] || "brocks-helpers";
+          // file:// pathnames are percent-encoded and may contain spaces.
+          // Decode so the copied cd target is a real filesystem path, then
+          // single-quote it so the shell treats the whole path (including any
+          // spaces) as one literal argument.
+          try { wsRoot = decodeURIComponent(wsRoot); } catch (e) { /* leave as-is */ }
+          // Shell-escape apostrophes so a path like /home/Lee's Work stays one argument.
           const viewerDir = `${wsRoot}/${bhDir}`.replace(/'/g, "'\\''");
           serveCmd = `cd '${viewerDir}' && python -m scripts.html_guides.cli serve`;
         }
-        navigator.clipboard.writeText(serveCmd);
         const original = startViewer.textContent;
-        startViewer.textContent = "Copied command!";
+        try {
+          await navigator.clipboard.writeText(serveCmd);
+          startViewer.textContent = "Copied command!";
+        } catch (err) {
+          console.error("Failed to copy command", err);
+          startViewer.textContent = "Copy failed";
+        }
         setTimeout(() => startViewer.textContent = original, 2000);
       };
 
       const rect = citation.getBoundingClientRect();
       popover.style.left = `${rect.left + window.scrollX}px`;
       popover.style.top = `${rect.bottom + window.scrollY + 8}px`;
+      activeCitation = citation;
       popover.classList.add('visible');
+      // Citations added after init, or any anchor that still cannot take
+      // focus, need a tab stop before focus moves into the popover.
+      if (!citation.hasAttribute('href')) {
+        citation.setAttribute('tabindex', '0');
+      }
+      primary.focus();
     } else if (!e.target.closest('#citation-popover')) {
       popover.classList.remove('visible');
+      activeCitation = null;
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && popover.classList.contains('visible')) {
+      e.preventDefault();
+      popover.classList.remove('visible');
+      activeCitation?.focus();
+      activeCitation = null;
     }
   });
 }
@@ -1501,9 +1547,121 @@ function initGraphDiagrams() {
         const targetLane = lanesMap[node.lane] || lanesMap[Object.keys(lanesMap)[0]];
         if (targetLane) targetLane.appendChild(el);
       });
-      
+
+      if (data.edges && data.edges.length > 0) {
+        graphWrapper.style.position = 'relative';
+      }
+
       container.appendChild(graphWrapper);
+
+      // Text equivalent for screen readers: node labels and whether an edge is new.
+      const nodeDescs = (data.nodes || []).map(n => n.label ? `${n.id} (${n.label})` : n.id).join(', ');
+      const edgeDescs = (data.edges || []).map(e => {
+        const label = e.label ? ` (${e.label})` : '';
+        const status = e.kind && String(e.kind).includes('diff-edge-new') ? ' (newly added)' : '';
+        return `${e.from} to ${e.to}${label}${status}`;
+      }).join('; ');
+      const fallback = document.createElement('div');
+      fallback.style.position = 'absolute';
+      fallback.style.width = '1px';
+      fallback.style.height = '1px';
+      fallback.style.padding = '0';
+      fallback.style.margin = '-1px';
+      fallback.style.overflow = 'hidden';
+      fallback.style.clip = 'rect(0, 0, 0, 0)';
+      fallback.style.whiteSpace = 'nowrap';
+      fallback.style.border = '0';
+      fallback.textContent = `Graph diagram. Nodes: ${nodeDescs}. Edges: ${edgeDescs || 'none'}.`;
+      container.appendChild(fallback);
+
+      // Insert before measuring. A node that is not in the document reports
+      // an empty box, which left edges zero-length until resize.
       script.parentNode.insertBefore(container, script.nextSibling);
+
+      if (data.edges && data.edges.length > 0) {
+        const SVG_NS = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(SVG_NS, 'svg');
+        svg.setAttribute('class', 'graph-edges-overlay');
+        svg.style.position = 'absolute';
+        svg.style.top = '0';
+        svg.style.left = '0';
+        svg.style.width = '100%';
+        svg.style.height = '100%';
+        svg.style.pointerEvents = 'none';
+        svg.style.overflow = 'visible';
+
+        const defs = document.createElementNS(SVG_NS, 'defs');
+        const marker = document.createElementNS(SVG_NS, 'marker');
+        marker.setAttribute('id', 'arrowhead-graph');
+        marker.setAttribute('markerWidth', '10');
+        marker.setAttribute('markerHeight', '7');
+        marker.setAttribute('refX', '10');
+        marker.setAttribute('refY', '3.5');
+        marker.setAttribute('orient', 'auto');
+        const polygon = document.createElementNS(SVG_NS, 'polygon');
+        polygon.setAttribute('points', '0 0, 10 3.5, 0 7');
+        polygon.setAttribute('fill', 'var(--ink-soft, #888)');
+        marker.appendChild(polygon);
+        defs.appendChild(marker);
+        svg.appendChild(defs);
+        graphWrapper.appendChild(svg);
+
+        const drawEdges = () => {
+          const wrapperRect = graphWrapper.getBoundingClientRect();
+          data.edges.forEach((edge, i) => {
+            const fromEl = graphWrapper.querySelector(`[data-id="${edge.from}"]`);
+            const toEl = graphWrapper.querySelector(`[data-id="${edge.to}"]`);
+            if (!fromEl || !toEl) return;
+
+            const r1 = fromEl.getBoundingClientRect();
+            const r2 = toEl.getBoundingClientRect();
+            const x1 = r1.left - wrapperRect.left + r1.width / 2;
+            const y1 = r1.bottom - wrapperRect.top;
+            const x2 = r2.left - wrapperRect.left + r2.width / 2;
+            const y2 = r2.top - wrapperRect.top;
+            const midY = (y1 + y2) / 2;
+
+            let path = svg.querySelector(`path[data-edge-index="${i}"]`);
+            if (!path) {
+              path = document.createElementNS(SVG_NS, 'path');
+              path.setAttribute('data-edge-index', String(i));
+              path.setAttribute('fill', 'none');
+              path.setAttribute('stroke', edge.kind && edge.kind.includes('dotted') ? 'var(--ink-soft, #aaa)' : 'var(--ink-soft, #888)');
+              path.setAttribute('stroke-width', '1.5');
+              path.setAttribute('stroke-dasharray', edge.kind && edge.kind.includes('dotted') ? '4 3' : '');
+              path.setAttribute('marker-end', 'url(#arrowhead-graph)');
+              if (edge.kind && edge.kind.includes('diff-edge-new')) {
+                path.setAttribute('stroke', 'var(--st-implemented, #2d8)');
+                path.setAttribute('stroke-width', '2');
+              }
+              svg.appendChild(path);
+            }
+            path.setAttribute('d', `M ${x1},${y1} C ${x1},${midY} ${x2},${midY} ${x2},${y2}`);
+
+            if (edge.label) {
+              let text = svg.querySelector(`text[data-edge-index="${i}"]`);
+              if (!text) {
+                text = document.createElementNS(SVG_NS, 'text');
+                text.setAttribute('data-edge-index', String(i));
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('fill', 'var(--ink, #333)');
+                text.setAttribute('font-size', '11px');
+                text.textContent = edge.label;
+                svg.appendChild(text);
+              }
+              text.setAttribute('x', (x1 + x2) / 2);
+              text.setAttribute('y', midY - 5);
+            }
+          });
+        };
+        drawEdges();
+
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(drawEdges, 100);
+        });
+      }
     } catch (e) {
       console.error(e);
     }
@@ -1548,7 +1706,18 @@ function initMasterDetail() {
 // C8 Capability Matrix
 function initCapabilityMatrices() {
   document.querySelectorAll('.guides-matrix').forEach(matrix => {
-    const controls = matrix.previousElementSibling;
+    // The controls usually sit immediately before the table, but the table
+    // may be wrapped in a `.table-scroll` container (as in the gallery C8
+    // example). In that case the controls are the sibling before the wrapper,
+    // so look through the wrapper instead of bailing out and leaving the
+    // filter buttons and row inspector unattached.
+    let controls = matrix.previousElementSibling;
+    if (!controls || !controls.classList.contains('capability-matrix-controls')) {
+      const wrapper = matrix.parentElement;
+      if (wrapper && wrapper.classList.contains('table-scroll')) {
+        controls = wrapper.previousElementSibling;
+      }
+    }
     if (!controls || !controls.classList.contains('capability-matrix-controls')) return;
     
     controls.addEventListener('click', e => {
@@ -1629,12 +1798,12 @@ function initEntityDiagrams() {
       const positions = {};
 
       data.boxes.forEach((box, i) => {
-        const col = box.col || (i % 3);
-        const row = box.row || Math.floor(i / 3);
+        const col = box.col ?? (i % 3);
+        const row = box.row ?? Math.floor(i / 3);
         const x = startX + col * (boxWidth + gapX);
         const y = startY + row * (boxHeight + gapY);
         
-        positions[box.id] = { x: x + boxWidth/2, y: y + boxHeight/2, left: x, right: x + boxWidth, top: y, bottom: y + boxHeight };
+        positions[box.id] = { x: x + boxWidth/2, y: y + boxHeight/2, left: x, right: x + boxWidth, top: y, bottom: y + boxHeight, col, row };
         
         maxX = Math.max(maxX, x + boxWidth);
         maxY = Math.max(maxY, y + boxHeight);

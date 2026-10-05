@@ -1028,8 +1028,8 @@ table.guides-matrix tbody.matrix-group::before {
     flex-direction: column;
     gap: 1rem;
   }
-  .sbs-pane { display: none; }
-  .sbs-pane.active { display: block; }
+  /* .sbs-pane { display: none; } (removed to stack vertically on mobile) */
+  /* .sbs-pane.active { display: block; } */
   .sbs-tabs { display: flex; }
 }
 
@@ -1464,15 +1464,32 @@ function initGraphDiagrams() {
         btn.className = `graph-node status-${node.status || 'default'}`;
         btn.innerHTML = `<span class="node-id">${node.id}</span> <span class="node-label">${node.label}</span>`;
         btn.setAttribute('data-id', node.id);
-        btn.addEventListener('click', () => {
-          showInspector(node.id, node, container);
-        });
+        if (document.querySelector(`template[data-for="${node.id}"]`)) {
+          btn.addEventListener('click', () => {
+            showInspector(node.id, node, container);
+          });
+        } else {
+          btn.style.cursor = 'default';
+        }
         
         const targetLane = lanesMap[node.lane] || lanesMap[Object.keys(lanesMap)[0]];
         if (targetLane) targetLane.appendChild(btn);
       });
       
       container.appendChild(graphWrapper);
+      
+      if (data.edges && data.edges.length > 0) {
+        const edgesDiv = document.createElement('div');
+        edgesDiv.className = 'graph-edges-list';
+        edgesDiv.style.marginTop = '1rem';
+        edgesDiv.style.fontFamily = 'var(--mono)';
+        edgesDiv.style.fontSize = '0.85rem';
+        edgesDiv.innerHTML = '<strong>Relationships:</strong><ul>' + 
+          data.edges.map(e => `<li>${e.from} &rarr; ${e.to}${e.kind ? ` (${e.kind})` : ''}</li>`).join('') + 
+          '</ul>';
+        container.appendChild(edgesDiv);
+      }
+      
       script.parentNode.insertBefore(container, script.nextSibling);
     } catch (e) {
       console.error(e);
@@ -1712,7 +1729,16 @@ function initEntityDiagrams() {
       
       // Text equivalent below
       const fallback = document.createElement('div');
-      fallback.style.display = 'none'; // Accessible via screen reader or alternative rendering
+      // Visually hide instead of display:none for screen readers
+      fallback.style.position = 'absolute';
+      fallback.style.width = '1px';
+      fallback.style.height = '1px';
+      fallback.style.padding = '0';
+      fallback.style.margin = '-1px';
+      fallback.style.overflow = 'hidden';
+      fallback.style.clip = 'rect(0, 0, 0, 0)';
+      fallback.style.whiteSpace = 'nowrap';
+      fallback.style.border = '0';
       fallback.textContent = JSON.stringify(data);
       container.appendChild(fallback);
       

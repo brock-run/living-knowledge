@@ -1479,13 +1479,14 @@ function initGraphDiagrams() {
       container.appendChild(graphWrapper);
       
       if (data.edges && data.edges.length > 0) {
+        container.style.flexDirection = 'column';
         const edgesDiv = document.createElement('div');
         edgesDiv.className = 'graph-edges-list';
         edgesDiv.style.marginTop = '1rem';
         edgesDiv.style.fontFamily = 'var(--mono)';
         edgesDiv.style.fontSize = '0.85rem';
         edgesDiv.innerHTML = '<strong>Relationships:</strong><ul>' + 
-          data.edges.map(e => `<li>${e.from} &rarr; ${e.to}${e.kind ? ` (${e.kind})` : ''}</li>`).join('') + 
+          data.edges.map(e => `<li>${e.from} &rarr; ${e.to}${e.kind && e.kind.replace(/diff-[a-zA-Z0-9-]+/g, '').trim() ? ` (${e.kind.replace(/diff-[a-zA-Z0-9-]+/g, '').trim()})` : ''}</li>`).join('') + 
           '</ul>';
         container.appendChild(edgesDiv);
       }

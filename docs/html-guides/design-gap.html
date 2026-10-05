@@ -982,6 +982,13 @@ document.addEventListener('DOMContentLoaded', () => {
   initSourcesObserver();
   initCopyButtons();
   initCitations();
+  initPhaseCopyButtons();
+  initSequenceDiagrams();
+  initStateDiagrams();
+  initGraphDiagrams();
+  initCapabilityMatrices();
+  initEntityDiagrams();
+  initMasterDetail();
 });
 
 // C3: Sources Observer (right rail)
@@ -1474,25 +1481,6 @@ function initMasterDetail() {
   });
 }
 
-// Update initialization to run these functions
-const origInit = document.addEventListener;
-document.addEventListener = function(type, fn) {
-  if (type === 'DOMContentLoaded') {
-    origInit.call(this, type, () => {
-      fn();
-      if (typeof initPhaseCopyButtons === 'function') initPhaseCopyButtons();
-      if (typeof initSequenceDiagrams === 'function') initSequenceDiagrams();
-      if (typeof initStateDiagrams === 'function') initStateDiagrams();
-      if (typeof initGraphDiagrams === 'function') initGraphDiagrams();
-      if (typeof initCapabilityMatrices === 'function') initCapabilityMatrices();
-      if (typeof initEntityDiagrams === 'function') initEntityDiagrams();
-
-      if (typeof initMasterDetail === 'function') initMasterDetail();
-    });
-  } else {
-    origInit.call(this, type, fn);
-  }
-};
 // C8 Capability Matrix
 function initCapabilityMatrices() {
   document.querySelectorAll('.guides-matrix').forEach(matrix => {
@@ -1577,12 +1565,12 @@ function initEntityDiagrams() {
       const positions = {};
 
       data.boxes.forEach((box, i) => {
-        const col = box.col || (i % 3);
-        const row = box.row || Math.floor(i / 3);
+        const col = box.col ?? (i % 3);
+        const row = box.row ?? Math.floor(i / 3);
         const x = startX + col * (boxWidth + gapX);
         const y = startY + row * (boxHeight + gapY);
         
-        positions[box.id] = { x: x + boxWidth/2, y: y + boxHeight/2, left: x, right: x + boxWidth, top: y, bottom: y + boxHeight };
+        positions[box.id] = { row, x: x + boxWidth/2, y: y + boxHeight/2, left: x, right: x + boxWidth, top: y, bottom: y + boxHeight };
         
         maxX = Math.max(maxX, x + boxWidth);
         maxY = Math.max(maxY, y + boxHeight);
@@ -1735,7 +1723,7 @@ function initEntityDiagrams() {
     <section id="matrix" class="prose numbered-section">
       <h2>Readiness Matrix</h2>
       <div class="capability-matrix-controls">
-        <button type="button" class="matrix-filter" data-filter="D" data-col="1">Show Yes</button>
+        <button type="button" class="matrix-filter" data-filter="D" data-col="1">Show Designed</button>
         <button type="button" class="matrix-filter" data-filter="✗" data-col="1">Show No</button>
       </div>
       <table class="guides-matrix">
